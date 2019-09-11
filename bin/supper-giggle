@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * SupperGiggler for coding standards validation against a commit pack
+ * SupperGiggler for coding standards validation against a given commit
  *
  * @author  Roger Sei <roger.sei@icloud.com>
  * @license //github.com/roger-sei/SuperGiggle/blob/master/LICENSE BSD Licence
