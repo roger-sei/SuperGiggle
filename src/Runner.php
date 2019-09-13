@@ -216,6 +216,15 @@ class Runner
             }
         }
     }
+
+
+    /**
+     * Helper to display a message and exit.
+     *
+     * @param string $message Error message
+     *
+     * @return void
+     */
     private function throw(string $message): void
     {
         $error = [];
