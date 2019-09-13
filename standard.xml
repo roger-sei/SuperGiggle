@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
 <ruleset name="GT8 Standard" namespace="GT8\Standard">
 	<description>Just a custom cd rule</description>
-		<rule ref="PSR12" />
-		
-		<rule ref="Squiz">
-			<exclude name="Squiz.Classes.ValidClassName"/>
-			<exclude name="Squiz.Commenting.ClosingDeclarationComment"/>
-			<exclude name="Squiz.Commenting.FileComment"/>
-			<exclude name="Squiz.Commenting.LongConditionClosingComment"/>
-			<exclude name="Squiz.Files.FileExtension"/>
-			<exclude name="Squiz.Strings.DoubleQuoteUsage"/>
+		<rule ref="PSR12" >
+			<exclude name="PSR2.Classes.ClassDeclaration"/>
 		</rule>
 		
+		<rule ref="Squiz.Operators.ComparisonOperatorUsage" />
+		<rule ref="Squiz.Formatting.OperatorBracket" />
+		<rule ref="Squiz.Commenting.FunctionComment" />
+		<rule ref="Squiz.WhiteSpace.FunctionSpacing" />
+		<rule ref="Squiz.Strings.DoubleQuoteUsage.NotRequired" />
+		
+		<rule ref="Generic.Arrays.ArrayIndent" />
+		<rule ref="Generic.Commenting.DocComment" />
+		<rule ref="Generic.Formatting.MultipleStatementAlignment" />
 		<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
 		
 		<rule ref="Generic.Files.LineLength">

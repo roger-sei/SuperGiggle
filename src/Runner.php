@@ -1,20 +1,20 @@
 <?php
-
-namespace SupperGiggle;
-
 /**
- * Núcleo do pacote GT8 framework.
+ * Main class for SuperGiggle, with auto runner option available.
  *
- * PHP Version 7
+ * PHP Version 7.3
  *
  * @category  PHP
  * @package   GT8
- * @author    GT8 <contato@gt8.com.br>
- * @copyright 2009-2019 GT8
- * @license   //github.com/gt8/php-g-core/license GPL2
- * @version   Release: GIT: 1
- * @link      //github.com/gt8/php-g-core/
+ * @author    GT8 <roger.sei@icloud.com>
+ * @copyright 2020 Roger Sei
+ * @license   //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
+ * @version   Release: GIT: 0.1.0
+ * @link      //github.com/roger-sei/SuperGiggle
  */
+
+namespace SupperGiggle;
+
 class Runner
 {
     /**
@@ -38,6 +38,15 @@ class Runner
      */
     private $options = [];
 
+    /**
+     * Possible options for reporting.
+     *
+     * @var array
+     */
+    private $reportOptions = [
+        ''
+    ];
+
 
     /**
      * Sets optional settings.
@@ -53,24 +62,32 @@ class Runner
     /**
      * Run SupperGiggle, using arguments from CLI.
      *
-     * @param array @args Arguments in CLI format
+     * @param array $args Arguments in CLI format.
      *
      * @return void
      */
     public function autoRun(array $args): void
     {
         next($args);
-        $options = [];
-        $solos   = [];
-        for ($arg=current($args); $arg; $arg=next($args)) {
+        $options      = [];
+        $solos        = [];
+        $solosAllowed = [
+            '--all',
+            '--verbose',
+        ];
+        for ($arg = current($args); $arg; $arg = next($args)) { // phpcs:ignore
             if (substr($arg, 0, 2) === '--' && strlen($arg) > 2) {
                 if (strpos($arg, '=') !== false) {
                     preg_match('#--([\\w\\s\-]+)=("|\')?(.+)(\\2)?#', $arg, $results);
                     if (isset($results[2]) === true) {
                         $options[$results[1]] = $results[3];
                     } else {
-                        $this->throw("Malformed argument \"$arg\". Check your sintax and try again or make a pull request to fix any error :P");
+                        $message  = "Malformed argument '$arg'. ";
+                        $message .= 'Check your syntax and try again or make a pull request to fix any error :P';
+                        $this->throw($message);
                     }
+                } elseif (in_array($arg, $solosAllowed) === true) {
+                    $options[substr($arg, 2)] = true;
                 } else {
                     $options[substr($arg, 2)] = next($args);
                 }
@@ -79,12 +96,11 @@ class Runner
             }
         }
 
-        foreach ($solos as $arg) {
+        foreach ($solos as &$arg) {
             if ($this->match($arg, '^[a-f0-9]{7}$') === $arg) {
                 $options['commit'] = $arg;
             }
         }
-
 
         $this->options = $options;
         $this->run();
@@ -94,15 +110,15 @@ class Runner
     /**
      * Helper to match a given string using regex.
      *
-     * @param string $text  The input string
-     * @param string $regex The pattern to search for
+     * @param string $text  The input string.
+     * @param string $regex The pattern to search for.
      *
      * @return string The first string captured.
      */
     protected function match(string $text, string $regex): string
     {
         preg_match("#$regex#", $text, $result);
-        return $result[1] ?? $result[0] ?? '';
+        return ($result[1] ?? $result[0] ?? '');
     }
 
 
@@ -113,22 +129,27 @@ class Runner
      */
     private function parseModifiedGitFiles(): array
     {
-        $result  = shell_exec("git --git-dir={$this->options['repo']}/.git --work-tree={$this->options['repo']} {$this->options['check-type']} {$this->options['commit']} --unified=0 {$this->options['file']} | egrep '^(@@|\+\+\+)'");
+        $r = $this->options['repo'];
+        $t = $this->options['check-type'];
+        $c = $this->options['commit'];
+        $f = $this->options['file'];
+
+        $result  = shell_exec("git --git-dir=$r/.git --work-tree=$r $t $c --unified=0 $f | egrep '^(@@|\+\+\+)'");
         $lines   = explode(PHP_EOL, $result);
         $crrFile = null;
         $files   = [];
         foreach ($lines as $line) {
             if (substr($line, 0, 4) === '+++ ') {
-                $crrFile = substr($line, strpos($line, ' b/') + 3);
+                $crrFile         = substr($line, (strpos($line, ' b/') + 3));
                 $files[$crrFile] = [];
             } elseif (substr($line, 0, 3) === '@@ ') {
                 preg_match('/\+(\d+)\,(\d+)/', $line, $numbers);
                 if (isset($numbers[2]) === true) {
                     $files[$crrFile][] = [
-                                          'status' => false,
-                                          'line'   => $numbers[1],
-                                          'range'  => $numbers[2],
-                                         ];
+                        'status' => false,
+                        'line'   => $numbers[1],
+                        'range'  => $numbers[2],
+                    ];
                 }
             }
         }
@@ -137,10 +158,20 @@ class Runner
     }
 
 
-    private function parsePHPCSErrors(string $path): array
+    /**
+     * Validates the given file using PHPCS
+     *
+     * @param string $file PHP file.
+     *
+     * @return array List of files
+     */
+    private function parsePHPCSErrors(string $file): array
     {
-        $dir      = dirname(__FILE__);
-        $response = shell_exec("{$this->options['php']} $dir/../vendor/bin/phpcs --report=json --standard={$this->options['standard']} '$path'");
+        $dir   = dirname(__FILE__);
+        $stndr = $this->options['standard'];
+        $php   = $this->options['php'];
+
+        $response = shell_exec("$php $dir/../vendor/bin/phpcs --report=json --standard=$stndr '$file'");
         $json     = json_decode($response, true);
         if (empty($json['files']) === false) {
             return current($json['files'])['messages'];
@@ -148,23 +179,62 @@ class Runner
             return [];
         }
     }
+
+
+    /**
+     * Outputs a friendly error message to the console
+     *
+     * @param string $file  The parsed.
+     * @param array  $error The object error, from PHPCS.
+     *
+     * @return void
+     */
     private function printError(string $file, array $error): void
     {
         if (isset($this->filesMatched[$file]) === false) {
             $this->filesMatched[$file] = true;
             echo "\nFILE: $file\n";
             echo $this->separator;
-            echo "";
+            echo '';
         }
 
-        echo str_pad($error['line'], 7, ' ', STR_PAD_LEFT) .' |'. str_pad($error['column'], 5, ' ', STR_PAD_LEFT) .' | '. $error['message']. PHP_EOL;
+        if (isset($this->options['verbose']) === true) {
+            if (strlen($error['source']) > 60) {
+                $verbose = ' | ' . substr($error['source'], 0, 57) . '...';
+            } else {
+                $verbose = ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
+            }
+        } else {
+            $verbose = '';
+        }
+
+        echo str_pad($error['line'], 7, ' ', STR_PAD_LEFT);
+        echo ' |' . str_pad($error['column'], 5, ' ', STR_PAD_LEFT);
+        echo $verbose;
+        echo ' | ' . $error['message'] . PHP_EOL;
     }
+
+
+    /**
+     * Print help information, in cli format
+     *
+     * @return void
+     */
     public function printHelp(): void
     {
         echo "Please, be patiente. I'm building this XD\n";
         exit(0);
     }
-    public function run(array $options=null): void
+
+
+    /**
+     * Run the SuperGiggle using $options
+     *
+     * @param array $options Check help for more information.
+     *
+     * @return void
+     */
+    public function run(array $options = null): void
     {
         $this->options = ($options ?? $this->options);
 
@@ -195,13 +265,21 @@ class Runner
                 }
             }
         }
-        
     }
+
+
+    /**
+     * Helper to display a message and exit.
+     *
+     * @param string $message Error message.
+     *
+     * @return void
+     */
     private function throw(string $message): void
     {
-        $error = [];
+        $error   = [];
         $error[] = $message;
-        $error[] = "Try --help for more information.";
+        $error[] = 'Try --help for more information.';
         echo(join(PHP_EOL, $error));
         echo PHP_EOL;
         exit(-1);
@@ -225,11 +303,11 @@ class Runner
             } else {
                 $this->throw('Missing "--repo"');
             }
-        } else if (file_exists($this->options['repo']) === false) {
+        } elseif (file_exists($this->options['repo']) === false) {
             $this->throw("Directory \"{$this->options['repo']}\" not found");
         }
 
-        if (empty($this->options['commit']) === true) {
+        if (empty($this->options['commit']) === true && empty($this->options['file']) === true) {
             if ($this->options['check-type'] === 'show') {
                 if (isset($this->options['repo']) === true) {
                     $repo   = $this->options['repo'];
@@ -242,8 +320,10 @@ class Runner
             } elseif ($this->options['check-type'] === 'diff') {
                 $this->options['commit'] = ($this->options['commit'] ?? '');
             } else {
-                $this->thrown("Invalid value for --check-type.");
+                $this->thrown('Invalid value for --check-type.');
             }
+        } else {
+            $this->options['commit'] = ($this->options['commit'] ?? '');
         }
 
         $this->options['file'] = ($this->options['file'] ?? '');
@@ -251,4 +331,6 @@ class Runner
             $this->throw("File '{$this->options['file']}' doesn't appear to exist!");
         }
     }
+
+
 }
