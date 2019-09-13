@@ -85,8 +85,6 @@ class Runner
             }
         }
 
-        $options['php']      = ($options['php'] ?? 'php');
-        $options['standard'] = ($options['standard'] ?? 'PSR12');
 
         $this->options = $options;
         $this->run();
@@ -115,7 +113,7 @@ class Runner
      */
     private function parseModifiedGitFiles(): array
     {
-        $result  = shell_exec("git --git-dir={$this->options['repo']}/.git --work-tree={$this->options['repo']} {$this->options['check-type']} {$this->options['commit']} --unified=0 | egrep '^(@@|\+\+\+)'");
+        $result  = shell_exec("git --git-dir={$this->options['repo']}/.git --work-tree={$this->options['repo']} {$this->options['check-type']} {$this->options['commit']} --unified=0 {$this->options['file']} | egrep '^(@@|\+\+\+)'");
         $lines   = explode(PHP_EOL, $result);
         $crrFile = null;
         $files   = [];
@@ -134,6 +132,7 @@ class Runner
                 }
             }
         }
+
         return $files;
     }
 
@@ -168,6 +167,7 @@ class Runner
     public function run(array $options=null): void
     {
         $this->options = ($options ?? $this->options);
+
         $this->validateOptions();
 
         $files    = $this->parseModifiedGitFiles();
@@ -216,6 +216,8 @@ class Runner
     private function validateOptions(): void
     {
         $this->options['check-type'] = ($this->options['check-type'] ?? 'show');
+        $this->options['php']        = ($this->options['php'] ?? 'php');
+        $this->options['standard']   = ($this->options['standard'] ?? 'PSR12');
 
         if (empty($this->options['repo']) === true) {
             if (isset($this->options['repo']) === true) {
@@ -244,5 +246,9 @@ class Runner
             }
         }
 
+        $this->options['file'] = ($this->options['file'] ?? '');
+        if (empty($this->options['file']) === false && file_exists($this->options['file']) === false) {
+            $this->throw("File '{$this->options['file']}' doesn't appear to exist!");
+        }
     }
 }

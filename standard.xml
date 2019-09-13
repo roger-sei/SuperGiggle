@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<ruleset name="GT8 Standard" namespace="GT8\Standard">
+	<description>Just a custom cd rule</description>
+		<rule ref="PSR12" />
+		
+		<rule ref="Squiz">
+			<exclude name="Squiz.Classes.ValidClassName"/>
+			<exclude name="Squiz.Commenting.ClosingDeclarationComment"/>
+			<exclude name="Squiz.Commenting.FileComment"/>
+			<exclude name="Squiz.Commenting.LongConditionClosingComment"/>
+			<exclude name="Squiz.Files.FileExtension"/>
+			<exclude name="Squiz.Strings.DoubleQuoteUsage"/>
+		</rule>
+		
+		<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+		
+		<rule ref="Generic.Files.LineLength">
+			<properties>
+				<property name="lineLimit" value="120"/>
+				<property name="absoluteLineLimit" value="150"/>
+			</properties>
+		</rule>
+		
+		<rule ref="Generic.Files.LineEndings">
+			<properties>
+				<property name="eolChar" value="\n"/>
+			</properties>
+		</rule>
+		
+		<rule ref="Generic.PHP.ForbiddenFunctions">
+			<properties>
+				<property name="forbiddenFunctions" type="array">
+					<element key="delete" value="unset"/>
+					<element key="print" value="echo"/>
+					<element key="create_function" value="null"/>
+					<element key="sizeof" value="count"/>
+					<element key="eval" value="null"/>
+				</property>
+			</properties>
+		</rule>
+</ruleset>
