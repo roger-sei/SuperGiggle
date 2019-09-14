@@ -7,7 +7,7 @@ SuperGiggle checks for code violations in a given commit, checking only changes 
 
 # Instalation
 ## Download using curl
-    https://roger-sei@github.io/super-giggle.phar
+    PHAR: [https://roger-sei@github.io/super-giggle.phar]
     php super-giggle.phar --help
 
 
