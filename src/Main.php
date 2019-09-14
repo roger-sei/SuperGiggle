@@ -15,7 +15,7 @@
 
 namespace SupperGiggle;
 
-class Runner
+class Main
 {
     /**
      * Errors matched between git show and phpcs.
@@ -49,6 +49,14 @@ class Runner
 
 
     /**
+     * Indicates whether this is a phar execution or not.
+     *
+     * @var bool
+     */
+    public $isPhar = false;
+
+
+    /**
      * Sets optional settings.
      *
      * @return void
@@ -74,6 +82,7 @@ class Runner
         $solosAllowed = [
             '--all',
             '--verbose',
+            '--diff',
         ];
         for ($arg = current($args); $arg; $arg = next($args)) { // phpcs:ignore
             if (substr($arg, 0, 2) === '--' && strlen($arg) > 2) {
@@ -84,7 +93,7 @@ class Runner
                     } else {
                         $message  = "Malformed argument '$arg'. ";
                         $message .= 'Check your syntax and try again or make a pull request to fix any error :P';
-                        $this->throw($message);
+                        $this->exit($message);
                     }
                 } elseif (in_array($arg, $solosAllowed) === true) {
                     $options[substr($arg, 2)] = true;
@@ -96,13 +105,43 @@ class Runner
             }
         }
 
-        foreach ($solos as &$arg) {
-            if ($this->match($arg, '^[a-f0-9]{7}$') === $arg) {
-                $options['commit'] = $arg;
-            }
-        }
+        $options['commit'] = ($options['commit'] ?? end($solos) ?? '');
 
         $this->run($options);
+    }
+
+
+    /**
+     * Helper to display a message and exit.
+     *
+     * @param string $message Error message.
+     *
+     * @return void
+     */
+    private function exit(string $message): void
+    {
+        $error   = [];
+        $error[] = $message;
+        $error[] = 'Try --help for more information.';
+        echo join(PHP_EOL, $error);
+        echo PHP_EOL;
+        exit(1);
+    }
+
+
+    /**
+     * Helper to display a message and exit.
+     *
+     * @param boolean $assertion Conditional to exit.
+     * @param string  $message   Error message.
+     *
+     * @return void
+     */
+    private function exitIf(bool $assertion, string $message): void
+    {
+        if ($assertion === true) {
+            $this->exit($message);
+        }
     }
 
 
@@ -133,7 +172,7 @@ class Runner
         $c = $this->options['commit'];
         $f = $this->options['file'];
 
-        $result  = shell_exec("git --git-dir=$r/.git --work-tree=$r $t $c --unified=0 $f | egrep '^(@@|\+\+\+)'");
+        $result  = shell_exec("git --git-dir=$r/.git --work-tree=$r $t $c --unified=0 $f | egrep '^(@@|\+\+)'");
         $lines   = explode(PHP_EOL, $result);
         $crrFile = null;
         $files   = [];
@@ -169,8 +208,10 @@ class Runner
         $dir   = dirname(__FILE__);
         $stndr = $this->options['standard'];
         $php   = $this->options['php'];
+        $phpcs = $this->options['phpcs'];
 
-        $response = shell_exec("$php $dir/../vendor/bin/phpcs --report=json --standard=$stndr '$file'");
+        $response = shell_exec("$php $phpcs --report=json --standard=$stndr '$file'");
+
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
         // This is a quick fix.
         $json = json_decode(str_replace('},,{', '},{', $response), true);
@@ -221,9 +262,18 @@ class Runner
      *
      * @return void
      */
-    public function printHelp(): void
+    public function printUsage(): void
     {
-        echo "Please, be patiente. I'm building this XD\n";
+        $options = [
+            'standard',
+            'diff',
+            'all',
+            'repo',
+            'phpcs',
+            'type',
+            'help',
+        ];
+        echo 'Usage: super-giggle [--'. join('] [--', $options) . ']' . PHP_EOL;
         exit(0);
     }
 
@@ -238,6 +288,10 @@ class Runner
     public function run(array $options = null): void
     {
         $this->options = ($options ?? $this->options);
+        if (isset($this->options['help']) === true) {
+            $this->printUsage();
+        }
+
         $this->validateOptions();
 
         $files    = $this->parseModifiedGitFiles();
@@ -269,43 +323,65 @@ class Runner
 
 
     /**
-     * Helper to display a message and exit.
-     *
-     * @param string $message Error message.
-     *
-     * @return void
-     */
-    private function throw(string $message): void
-    {
-        $error   = [];
-        $error[] = $message;
-        $error[] = 'Try --help for more information.';
-        echo(join(PHP_EOL, $error));
-        echo PHP_EOL;
-        exit(1);
-    }
-
-
-    /**
      * Validate all required fieldsand exit if it fails.
      *
      * @return void
      */
     private function validateOptions(): void
     {
+        $base = dirname(__DIR__);
+
+        // First, we check for basic system requirements.
+        if ($this->isPhar === true) {
+            if (isset($this->options['phpcs']) === true) {
+                $base = getcwd();
+                $this->exitIf(
+                    empty(shell_exec("command -v $base/{$this->options['phpcs']}")),
+                    "'$base/{$this->options['phpcs']}' not valid command. Please, make sure it exists."
+                );
+            } else {
+                $this->exitIf(
+                    empty(shell_exec("command -v phpcs")),
+                    "'phpcs' is required when using phar. Please, install it or use --phpcs option to indicate the path"
+                );
+            }
+        } else {
+            $this->exitIf(
+                isset($this->options['phpcs']) === true && empty(shell_exec("command -v {$this->options['phpcs']}")),
+                "'phpcs' not found. Please, install it or use --phpcs option to indicate the path"
+            );
+            $this->exitIf(
+                isset($this->options['phpcs']) === false && file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs") === false,
+                "Dependency file 'phpcs' not found. Please, install it using composer or use --phpcs option to indicate the executable"
+            );
+        }
+
+        $this->exitIf(
+            (version_compare(PHP_VERSION, '7.1') === -1),
+            'super-giggle requires at leaset PHP 7.1. Your PHP version is '. PHP_VERSION . ' :('
+        );
+
+        // Now, check for all options.
+        if (isset($this->options['diff']) === true) {
+            $this->options['type'] = 'diff';
+        }
+
         $this->options['type']     = ($this->options['type'] ?? 'show');
         $this->options['php']      = ($this->options['php'] ?? 'php');
+        $this->options['phpcs']    = ($this->options['phpcs'] ?? __DIR__ . '/../vendor/bin/phpcs');
         $this->options['standard'] = ($this->options['standard'] ?? 'PSR12');
 
-        if (empty($this->options['repo']) === true) {
+        if (empty($this->options['repo']) === true && file_exists(getcwd() . '/.git') === true) {
+            $this->options['repo'] = getcwd();
+        } elseif (empty($this->options['repo']) === true) {
             if (isset($this->options['repo']) === true) {
-                $this->throw('Empty value for "--repo"');
+                $this->exit('Empty value for "--repo"');
             } else {
-                $this->throw('Missing "--repo"');
+                $this->exit('Missing "--repo"');
             }
-        } elseif (file_exists($this->options['repo']) === false) {
-            $this->throw("Directory \"{$this->options['repo']}\" not found");
         }
+
+        $this->exitIf(file_exists($this->options['repo']) === false, "Directory \"{$this->options['repo']}\" not found");
 
         if (empty($this->options['commit']) === true && empty($this->options['file']) === true) {
             if ($this->options['type'] === 'show') {
@@ -315,21 +391,23 @@ class Runner
                     $result = shell_exec($arg);
                     $error  = "Missing --commit.\nPlease, choose a commit ";
                     $error .= "or use --diff option to validate against the last change:\n$result";
-                    $this->throw($error);
+                    $this->exit($error);
                 }
             } elseif ($this->options['type'] === 'diff') {
                 $this->options['commit'] = ($this->options['commit'] ?? '');
             } else {
-                $this->thrown('Invalid value for --type.');
+                $this->exit('Invalid value for --type.');
             }
         } else {
             $this->options['commit'] = ($this->options['commit'] ?? '');
         }
 
         $this->options['file'] = ($this->options['file'] ?? '');
-        if (empty($this->options['file']) === false && file_exists($this->options['file']) === false) {
-            $this->throw("File '{$this->options['file']}' doesn't appear to exist!");
-        }
+
+        $this->exitIf(
+            (empty($this->options['file']) === false && file_exists($this->options['file']) === false),
+            "File '{$this->options['file']}' doesn't appear to exist!"
+        );
     }
 
 
