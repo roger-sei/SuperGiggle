@@ -102,8 +102,7 @@ class Runner
             }
         }
 
-        $this->options = $options;
-        $this->run();
+        $this->run($options);
     }
 
 
@@ -130,7 +129,7 @@ class Runner
     private function parseModifiedGitFiles(): array
     {
         $r = $this->options['repo'];
-        $t = $this->options['check-type'];
+        $t = $this->options['type'];
         $c = $this->options['commit'];
         $f = $this->options['file'];
 
@@ -139,10 +138,10 @@ class Runner
         $crrFile = null;
         $files   = [];
         foreach ($lines as $line) {
-            if (substr($line, 0, 4) === '+++ ') {
+            if (substr($line, 0, 3) === '++ ' || substr($line, 0, 4) === '+++ ') {
                 $crrFile         = substr($line, (strpos($line, ' b/') + 3));
                 $files[$crrFile] = [];
-            } elseif (substr($line, 0, 3) === '@@ ') {
+            } elseif (substr($line, 0, 3) === '@@ ' || substr($line, 0, 4) === '@@@ ') {
                 preg_match('/\+(\d+)\,(\d+)/', $line, $numbers);
                 if (isset($numbers[2]) === true) {
                     $files[$crrFile][] = [
@@ -172,7 +171,9 @@ class Runner
         $php   = $this->options['php'];
 
         $response = shell_exec("$php $dir/../vendor/bin/phpcs --report=json --standard=$stndr '$file'");
-        $json     = json_decode($response, true);
+        // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
+        // This is a quick fix.
+        $json = json_decode(str_replace('},,{', '},{', $response), true);
         if (empty($json['files']) === false) {
             return current($json['files'])['messages'];
         } else {
@@ -237,7 +238,6 @@ class Runner
     public function run(array $options = null): void
     {
         $this->options = ($options ?? $this->options);
-
         $this->validateOptions();
 
         $files    = $this->parseModifiedGitFiles();
@@ -282,7 +282,7 @@ class Runner
         $error[] = 'Try --help for more information.';
         echo(join(PHP_EOL, $error));
         echo PHP_EOL;
-        exit(-1);
+        exit(1);
     }
 
 
@@ -293,9 +293,9 @@ class Runner
      */
     private function validateOptions(): void
     {
-        $this->options['check-type'] = ($this->options['check-type'] ?? 'show');
-        $this->options['php']        = ($this->options['php'] ?? 'php');
-        $this->options['standard']   = ($this->options['standard'] ?? 'PSR12');
+        $this->options['type']     = ($this->options['type'] ?? 'show');
+        $this->options['php']      = ($this->options['php'] ?? 'php');
+        $this->options['standard'] = ($this->options['standard'] ?? 'PSR12');
 
         if (empty($this->options['repo']) === true) {
             if (isset($this->options['repo']) === true) {
@@ -308,7 +308,7 @@ class Runner
         }
 
         if (empty($this->options['commit']) === true && empty($this->options['file']) === true) {
-            if ($this->options['check-type'] === 'show') {
+            if ($this->options['type'] === 'show') {
                 if (isset($this->options['repo']) === true) {
                     $repo   = $this->options['repo'];
                     $arg    = "git --git-dir=$repo/.git --work-tree=$repo log --oneline --color | head -n 10";
@@ -317,10 +317,10 @@ class Runner
                     $error .= "or use --diff option to validate against the last change:\n$result";
                     $this->throw($error);
                 }
-            } elseif ($this->options['check-type'] === 'diff') {
+            } elseif ($this->options['type'] === 'diff') {
                 $this->options['commit'] = ($this->options['commit'] ?? '');
             } else {
-                $this->thrown('Invalid value for --check-type.');
+                $this->thrown('Invalid value for --type.');
             }
         } else {
             $this->options['commit'] = ($this->options['commit'] ?? '');
