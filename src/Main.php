@@ -318,21 +318,22 @@ class Main
         $checkSBC = 'Function closing brace must go on the next line';
         foreach ($files as $file => $gitChanges) {
             foreach ($this->parsePHPCSErrors("{$this->options['repo']}/$file") as $crrPhpcsError) {
-                foreach ($gitChanges as $crrChange) {
-                    if ($checkAll === true) {
-                        $this->printError($file, $crrPhpcsError);
-                        break;
-                    } elseif ($crrPhpcsError['line'] >= $crrChange['line']
-                        && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
-                    ) {
-                        $this->printError($file, $crrPhpcsError);
-                    } elseif (($crrPhpcsError['line'] + 1) >= $crrChange['line']
-                        && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
-                    ) {
-                        // Check for errors right after the line changed.
-                        // @gregsherwood suggestion for a better approach?
-                        if (strpos($crrPhpcsError['message'], $checkSBC) !== false) {
+                if ($checkAll === true) {
+                    $this->printError($file, $crrPhpcsError);
+                } else {
+                    foreach ($gitChanges as $crrChange) {
+                        if ($crrPhpcsError['line'] >= $crrChange['line']
+                            && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
+                        ) {
                             $this->printError($file, $crrPhpcsError);
+                        } elseif (($crrPhpcsError['line'] + 1) >= $crrChange['line']
+                            && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
+                        ) {
+                            // Check for errors right after the line changed.
+                            // @gregsherwood suggestion for a better approach?
+                            if (strpos($crrPhpcsError['message'], $checkSBC) !== false) {
+                                $this->printError($file, $crrPhpcsError);
+                            }
                         }
                     }
                 }
