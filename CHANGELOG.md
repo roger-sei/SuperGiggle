@@ -2,9 +2,12 @@
 @author ᏒᏊᏀᏋᏒ ᏕξᏐ
 
 ## [0.3.0] - 2019-09-15
+### Changed
+- Messages are now colored in CLI
+
 ### Added
 - Help is completed, using option --help to show all available options
-- Phar ready to be build
+- Phar ready to be build in scripts/ folder
 
 ### Fixed
 - When using --phpcs pointing to a relative path the program is not found

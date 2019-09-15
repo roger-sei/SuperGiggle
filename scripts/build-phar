@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+$base = dirname(__DIR__);
+$cwd  = getcwd();
+
+if (file_exists("$cwd/super-giggle.phar") === true) {
+    unlink("$cwd/super-giggle.phar");
+}
+
+$phar = new Phar("$cwd/super-giggle.phar", 0);
+$phar->buildFromDirectory("$base/src");
+foreach (($argv ?? []) as $arg) {
+    if ($arg === '--compress') {
+        $phar->compressFiles(Phar::GZ);
+    }
+}
+
+$phar->setStub(
+'#!/usr/bin/env php
+<?php
+Phar::mapPhar("super-giggle.phar");
+require_once "phar://super-giggle.phar/Main.php";
+$sg = new SupperGiggle\Main();
+$sg->isPhar = true;
+$sg->autoRun($argv);
+exit(0);
+__HALT_COMPILER();');
+
+chmod("$cwd/super-giggle.phar", 0755);

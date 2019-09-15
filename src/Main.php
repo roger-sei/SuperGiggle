@@ -126,14 +126,23 @@ class Main
      */
     private function exit(string $message = ''): void
     {
-        $error = explode(PHP_EOL, $message);
-        $error[] = 'Try --help for more information.';
+        $errors = explode(PHP_EOL, $message);
+        $errors[] = 'Try ``--help`` for more information.';
 
-        $title = array_shift($error);
+        $title = array_shift($errors);
 
+        foreach ($errors as &$error) {
+            $error = preg_replace_callback(
+                '#(``).+?(``)#',
+                function ($matches) {
+                    return "\033[1;35m" . substr($matches[0], 2, -2) . "\033[m";
+                },
+                $error
+            );
+        }
         echo PHP_EOL;
         echo "\033[0;31m$title\033[0m\n";
-        echo join(PHP_EOL, $error);
+        echo join(PHP_EOL, $errors);
         echo PHP_EOL;
         exit(1);
     }
@@ -371,17 +380,17 @@ class Main
             } else {
                 $this->exitIf(
                     empty(shell_exec('command -v phpcs')),
-                    "'phpcs' is required when using phar. Please, install it or use --phpcs option to indicate the path"
+                    "'phpcs' is required when using phar. Please, install it or use ``--phpcs`` option to indicate the path"
                 );
             }
         } else {
             $this->exitIf(
                 isset($this->options['phpcs']) && empty(shell_exec("command -v $base/{$this->options['phpcs']}")),
-                "'phpcs' not found. Please, install it or use --phpcs option to indicate the path"
+                "'phpcs' not found. Please, install it or use ``phpcs`` option to indicate the path"
             );
             $this->exitIf(
                 (isset($this->options['phpcs']) && !file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs")),
-                "Dependency file 'phpcs' not found. Please, install it using composer or use --phpcs option to indicate the executable"
+                "Dependency file 'phpcs' not found. Please, install it using composer or use ``--phpcs`` option to indicate the executable"
             );
         }
 
@@ -410,14 +419,14 @@ class Main
             $this->options['repo'] = getcwd();
         } elseif (empty($this->options['repo']) === true) {
             if (isset($this->options['repo']) === true) {
-                $this->exit('Empty value for "--repo"');
+                $this->exit('Empty value for ``--repo``');
             } else {
                 if (preg_match('#^(.+)\.git#i', shell_exec('git rev-parse --git-dir'), $result) === 1
                     && isset($result[1]) === true
                 ) {
                     $this->options['repo'] = $result[1];
                 } else {
-                    $this->exit('Missing "--repo"');
+                    $this->exit('Missing ``--repo``');
                 }
             }
         }
@@ -430,14 +439,15 @@ class Main
                     $repo   = $this->options['repo'];
                     $arg    = "git --git-dir=$repo/.git --work-tree=$repo log --oneline --color | head -n 10";
                     $result = shell_exec($arg);
-                    $error  = "Missing --commit.\n\nPlease, choose a commit ";
-                    $error .= "or use --diff option to validate against the last change:\n\n$result";
+                    $error  = "Missing --commit.\n\nPlease, choose a commit, ";
+                    $error .= 'specify a file using ``--file`` option, or ';
+                    $error .= "use ``--diff`` option to validate against the last change:\n\n$result";
                     $this->exit($error);
                 }
             } elseif ($this->options['type'] === 'diff') {
                 $this->options['commit'] = ($this->options['commit'] ?? '');
             } else {
-                $this->exit('Invalid value for --type.');
+                $this->exit('Invalid value for ``--type``.');
             }
         } else {
             $this->options['commit'] = ($this->options['commit'] ?? '');
