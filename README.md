@@ -16,6 +16,7 @@ But at the same time you still WANT to implement **good practices** and **standa
 ## Requirements
 - PHP 7.2 or greater
 - PHPCS 3 or greater
+- Linux/Windows
 
 # Instalation and usage
 
@@ -25,7 +26,7 @@ But at the same time you still WANT to implement **good practices** and **standa
     php super-giggle.phar --help
 
 ## Composer
-    composer install roger-sei/super-giggle
+    composer install -g roger-sei/super-giggle
     super-giggle --help
 
 ## Git clone
@@ -47,4 +48,28 @@ But at the same time you still WANT to implement **good practices** and **standa
     --verbose  Prints additional information.
     --warnings Displays also warnings and not only errors.
     --standard The name or path of the coding standard. Defaults to PSR12.
+```
+
+### License
+
+```
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
