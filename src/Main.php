@@ -15,6 +15,8 @@
 
 namespace SupperGiggle;
 
+use SupperGiggle\Util;
+
 class Main
 {
     /**
@@ -147,9 +149,17 @@ class Main
         $t = $this->options['type'];
         $c = $this->options['commit'];
         $f = $this->options['file'];
+        $gitOutput = sprintf(
+            'git --git-dir="%s/.git" --work-tree="%s" %s %s --unified=0 %s | grep -E "^(@@|\+\+)"',
+            $r,
+            $r,
+            $t,
+            $c,
+            $f
+        );
 
-        $result  = shell_exec("git --git-dir=$r/.git --work-tree=$r $t $c --unified=0 $f | egrep '^(@@|\+\+)'");
-        $lines   = explode(PHP_EOL, $result);
+        $result  = shell_exec($gitOutput);
+        $lines = preg_split('/\r\n|\r|\n/', $result);
         $crrFile = null;
         $files   = [];
         foreach ($lines as $line) {
@@ -187,8 +197,10 @@ class Main
         $php      = $this->options['php'];
         $phpcs    = $this->options['phpcs'];
         $warnings = $this->options['warnings'];
+        $execString = Util::isWindows() ? "$phpcs --report=json --standard=$stndr $file $warnings" :
+        "$php $phpcs --report=json --standard=$stndr '$file' $warnings";
 
-        $response = shell_exec("$php $phpcs --report=json --standard=$stndr '$file' $warnings");
+        $response = shell_exec($execString);
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
         // This is a quick fix.
         $json = json_decode(str_replace('},,{', '},{', $response), true);
@@ -334,11 +346,11 @@ class Main
 
         $this->options['type']     = ($this->options['type'] ?? 'show');
         $this->options['php']      = ($this->options['php'] ?? 'php');
-        $this->options['phpcs']    = ($this->options['phpcs'] ?? __DIR__ . '/../vendor/bin/phpcs');
+        $this->options['phpcs']    = ($this->options['phpcs'] ?? Util::getPhpCsBinary());
         $this->options['standard'] = ($this->options['standard'] ?? 'PSR12');
 
         if (empty($this->options['repo']) === true && file_exists(getcwd() . '/.git') === true) {
-            $this->options['repo'] = getcwd();
+            $this->options['repo'] = str_replace('\\', '/', realpath(getcwd()));
         } elseif (empty($this->options['repo']) === true) {
             if (isset($this->options['repo']) === true) {
                 $this->exit('Empty value for ``--repo``');

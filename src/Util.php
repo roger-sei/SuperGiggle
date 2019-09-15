@@ -25,10 +25,10 @@ class Util
     public static function parseArgs(): array
     {
         $opt = getopt('', ['commit:', 'help::', 'all::', 'verbose::', 'diff::']);
-        array_walk($opt, function (&$v, $k) {
+        array_walk($opt, function (&$v, $_) {
             $v = $v === false ? true : $v;
         });
-        
+
         return $opt;
     }
 
@@ -59,5 +59,26 @@ class Util
         echo PHP_EOL;
 
         exit(0);
+    }
+
+    /**
+     * Get phpcs binary
+     *
+     * @return string
+     */
+    public static function getPhpCsBinary(): string
+    {
+        $path = __DIR__ . '/../vendor/bin/phpcs';
+
+        if (self::isWindows()) {
+            $path = str_replace('\\', '/', __DIR__ . '/../vendor/bin/phpcs.bat');
+        }
+
+        return $path;
+    }
+
+    public static function isWindows(): bool
+    {
+        return (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
     }
 }
