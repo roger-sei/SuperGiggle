@@ -144,7 +144,7 @@ class Main
         $file   = $this->options['file'];
 
         $files = [];
-        if (isset($this->options['all']) === true && isset($this->options['file']) === true) {
+        if (isset($this->options['all']) === true && empty($file) === false) {
             $files[$this->options['file']] = [];
         } else {
             $execString = sprintf(
@@ -231,10 +231,10 @@ class Main
         if (isset($this->options['verbose']) === true) {
             $verbose = ' | ' . str_pad($error['type'], 10, ' ', STR_PAD_RIGHT);
 
-            if (strlen($error['source']) > 70) {
-                $verbose .= ' | ' . substr($error['source'], 0, 67) . '...';
+            if (strlen($error['source']) > 60) {
+                $verbose .= ' | ' . substr($error['source'], 0, 57) . '...';
             } else {
-                $verbose .= ' | ' . str_pad($error['source'], 70, ' ', STR_PAD_RIGHT);
+                $verbose .= ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
             }
         } else {
             $verbose = '';
@@ -400,4 +400,6 @@ class Main
             "File '{$this->options['file']}' doesn't appear to exist!"
         );
     }
+
+
 }
