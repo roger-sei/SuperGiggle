@@ -64,7 +64,7 @@ class Main
     {
         $this->separator = str_repeat('-', 110) . PHP_EOL;
     }
-    
+
 
     /**
      * Helper to display a message and exit.
@@ -138,9 +138,9 @@ class Main
     private function parseModifiedGitFiles(): array
     {
         $repo      = $this->options['repo'];
-        $ttype     = $this->options['type'];
+        $type      = $this->options['type'];
         $commit    = $this->options['commit'];
-        $ffile     = $this->options['file'];
+        $file      = $this->options['file'];
         $gitOutput = sprintf(
             'git --git-dir="%s/.git" --work-tree="%s" %s %s --unified=0 %s | grep -E "^(@@|\+\+)"',
             $repo,
@@ -184,10 +184,10 @@ class Main
      */
     private function parsePHPCSErrors(string $file): array
     {
-        $stndr    = $this->options['standard'];
-        $php      = $this->options['php'];
-        $phpcs    = $this->options['phpcs'];
-        $warnings = $this->options['warnings'];
+        $stndr      = $this->options['standard'];
+        $php        = $this->options['php'];
+        $phpcs      = $this->options['phpcs'];
+        $warnings   = $this->options['warnings'];
         $execString = Util::isWindows() === true ? "$phpcs --report=json --standard=$stndr $file $warnings" :
         "$php $phpcs --report=json --standard=$stndr '$file' $warnings";
 
@@ -387,6 +387,4 @@ class Main
             "File '{$this->options['file']}' doesn't appear to exist!"
         );
     }
-
-
 }
