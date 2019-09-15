@@ -19,9 +19,9 @@ But at the same time you still WANT to implement **good practices** and **standa
 
 # Instalation and usage
 
-## Download using curl
-PHAR: [super-giggle.phar](https://roger-sei.github.io/super-giggle.phar)
+## Phar
 
+    wget https://roger-sei.github.io/super-giggle.phar
     php super-giggle.phar --help
 
 ## Composer
