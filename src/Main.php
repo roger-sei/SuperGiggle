@@ -376,11 +376,11 @@ class Main
             }
         } else {
             $this->exitIf(
-                isset($this->options['phpcs']) && empty(shell_exec("command -v {$this->options['phpcs']}")),
+                isset($this->options['phpcs']) && empty(shell_exec("command -v $base/{$this->options['phpcs']}")),
                 "'phpcs' not found. Please, install it or use --phpcs option to indicate the path"
             );
             $this->exitIf(
-                isset($this->options['phpcs']) && file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs"),
+                (isset($this->options['phpcs']) && !file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs")),
                 "Dependency file 'phpcs' not found. Please, install it using composer or use --phpcs option to indicate the executable"
             );
         }
