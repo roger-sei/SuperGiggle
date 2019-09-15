@@ -19,6 +19,7 @@ use SupperGiggle\Util;
 
 class Main
 {
+
     /**
      * Errors matched between git show and phpcs.
      *
@@ -137,36 +138,41 @@ class Main
      */
     private function parseModifiedGitFiles(): array
     {
-        $repo      = $this->options['repo'];
-        $type      = $this->options['type'];
-        $commit    = $this->options['commit'];
-        $file      = $this->options['file'];
-        $gitOutput = sprintf(
-            'git --git-dir="%s/.git" --work-tree="%s" %s %s --unified=0 %s | grep -E "^(@@|\+\+)"',
-            $repo,
-            $repo,
-            $type,
-            $commit,
-            $file
-        );
+        $repo   = $this->options['repo'];
+        $type   = $this->options['type'];
+        $commit = $this->options['commit'];
+        $file   = $this->options['file'];
 
-        $result  = shell_exec($gitOutput);
-        $lines   = preg_split('/\r\n|\r|\n/', $result);
-        $crrFile = null;
-        $files   = [];
-        foreach ($lines as $line) {
-            if (substr($line, 0, 3) === '++ ' || substr($line, 0, 4) === '+++ ') {
-                $crrFile         = substr($line, (strpos($line, ' b/') + 3));
-                $files[$crrFile] = [];
-            } elseif (substr($line, 0, 3) === '@@ ' || substr($line, 0, 4) === '@@@ ') {
-                preg_match('/^@@ .+? \+(\d+),?(\d+)?/', $line, $numbers);
-                if (isset($numbers[1]) === true) {
-                    $files[$crrFile][] = [
-                        'status' => false,
-                        'line'   => $numbers[1],
-                        'range'  => ($numbers[2] ?? 0),
-                        'change' => substr($line, (strpos($line, ' ') + 1)),
-                    ];
+        $files = [];
+        if (isset($this->options['all']) === true && isset($this->options['file']) === true) {
+            $files[$this->options['file']] = [];
+        } else {
+            $gitOutput = sprintf(
+                'git --git-dir="%s/.git" --work-tree="%s" %s %s --unified=0 %s | grep -E "^(@@|\+\+)"',
+                $repo,
+                $repo,
+                $type,
+                $commit,
+                $file
+            );
+
+            $result  = shell_exec($gitOutput);
+            $lines   = preg_split('/\r\n|\r|\n/', $result);
+            $crrFile = null;
+            foreach ($lines as $line) {
+                if (substr($line, 0, 3) === '++ ' || substr($line, 0, 4) === '+++ ') {
+                    $crrFile         = substr($line, (strpos($line, ' b/') + 3));
+                    $files[$crrFile] = [];
+                } elseif (substr($line, 0, 3) === '@@ ' || substr($line, 0, 4) === '@@@ ') {
+                    preg_match('/^@@ .+? \+(\d+),?(\d+)?/', $line, $numbers);
+                    if (isset($numbers[1]) === true) {
+                        $files[$crrFile][] = [
+                            'status' => false,
+                            'line'   => $numbers[1],
+                            'range'  => ($numbers[2] ?? 0),
+                            'change' => substr($line, (strpos($line, ' ') + 1)),
+                        ];
+                    }
                 }
             }
         }
@@ -257,6 +263,7 @@ class Main
         $checkSBC = 'Function closing brace must go on the next line';
         foreach ($files as $file => $gitChanges) {
             foreach ($this->parsePHPCSErrors("{$this->options['repo']}/$file") as $crrPhpcsError) {
+                print_r($crrPhpcsError, true);
                 if ($checkAll === true) {
                     $this->printError($file, $crrPhpcsError);
                 } else {
