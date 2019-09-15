@@ -5,7 +5,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/roger-sei/SuperGiggle?style=for-the-badge)
 ![GitHub last commit](https://img.shields.io/github/last-commit/roger-sei/SuperGiggle?style=for-the-badge)
 
-When working with a **legacy code** or an already existing huge code, validating the existing code may become a big nightmare and you nust can't improve the legacy code overnight.
+When working with a **legacy code** or an already existing huge code, validating the existing code may become a big nightmare and you just can't improve the legacy code overnight.
 
 ![Full check using PHPCS](https://roger-sei.github.io/assets/phpcs.gif)
 
@@ -19,9 +19,9 @@ But at the same time you still WANT to implement **good practices** and **standa
 
 # Instalation and usage
 
-## Download using curl
-PHAR: [super-giggle.phar](https://roger-sei.github.io/super-giggle.phar)
+## Phar
 
+    wget https://roger-sei.github.io/super-giggle.phar
     php super-giggle.phar --help
 
 ## Composer
@@ -37,14 +37,14 @@ PHAR: [super-giggle.phar](https://roger-sei.github.io/super-giggle.phar)
 ## Options
     bin/supper-giggle [--repo] [--commit] [options]
 ```
---all.     Checks the whole file. Same as *git diff [file]*.
---repo     The working git repository.
---commit   The specific commit to validate.
---phpcs    Path to phpcs executable, required only if not using composer or if phpcs isn't in your PATH env.
---type     <show|diff> *diff* validates the local changes. *show* validate changes in a specific commit.
---file     Force checking this file, regardless the type or commit options.
---diff     Validates changes on the current repository, between commits or branches.
---verbose  Prints additional information.
---warnings Displays also warnings and not only errors.
---standard The name or path of the coding standard. Defaults to PSR12.
+    --all.     Checks the whole file. Same as *git diff [file]*.
+    --repo     The working git repository.
+    --commit   The specific commit to validate.
+    --phpcs    Path to phpcs executable, required only if not using composer or if phpcs isn't in your PATH env.
+    --type     <show|diff> *diff* validates the local changes. *show* validate changes in a specific commit.
+    --file     Force checking this file, regardless the type or commit options.
+    --diff     Validates changes on the current repository, between commits or branches.
+    --verbose  Prints additional information.
+    --warnings Displays also warnings and not only errors.
+    --standard The name or path of the coding standard. Defaults to PSR12.
 ```
