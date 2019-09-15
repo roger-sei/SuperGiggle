@@ -24,7 +24,20 @@ class Util
      */
     public static function parseArgs(): array
     {
-        $opt = getopt('', ['commit:', 'help::', 'all::', 'verbose::', 'diff::']);
+        $alloweds = [
+            'commit:',
+            'help::',
+            'all::',
+            'verbose::',
+            'diff::',
+            'file::',
+            'php::',
+            'phpcs::',
+            'standard::',
+            'warnings::',
+        ];
+
+        $opt = getopt('', $alloweds);
         array_walk($opt, function (&$v) {
             $v = $v === false ? true : $v;
         });
