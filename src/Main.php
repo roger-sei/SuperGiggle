@@ -126,13 +126,13 @@ class Main
      */
     private function exit(string $message = ''): void
     {
-        $errors = explode(PHP_EOL, $message);
-        $errors[] = 'Try ``--help`` for more information.';
+        $errors   = explode(PHP_EOL, $message);
+        $errors[] = "\n  Try ``--help`` for more information.";
 
         $title = array_shift($errors);
 
         foreach ($errors as &$error) {
-            $error = preg_replace_callback(
+            $error = '  ' . preg_replace_callback(
                 '#(``).+?(``)#',
                 function ($matches) {
                     return "\033[1;35m" . substr($matches[0], 2, -2) . "\033[m";
@@ -140,9 +140,11 @@ class Main
                 $error
             );
         }
+
         echo PHP_EOL;
-        echo "\033[0;31m$title\033[0m\n";
+        echo "  \033[0;31m$title\033[0m\n";
         echo join(PHP_EOL, $errors);
+        echo PHP_EOL;
         echo PHP_EOL;
         exit(1);
     }
@@ -257,7 +259,7 @@ class Main
 
         if (isset($this->filesMatched[$file]) === false) {
             $this->filesMatched[$file] = true;
-            echo "\nFILE: $file\n";
+            echo "\n  FILE: $file\n";
             echo $this->separator;
             echo '';
         }
@@ -274,7 +276,7 @@ class Main
             $verbose = '';
         }
 
-        echo str_pad($error['line'], 7, ' ', STR_PAD_LEFT);
+        echo str_pad($error['line'], 9, ' ', STR_PAD_LEFT);
         echo $verbose;
         echo ' | ' . $error['message'] . PHP_EOL;
     }
@@ -375,12 +377,12 @@ class Main
                 $base = getcwd();
                 $this->exitIf(
                     empty(shell_exec("command -v $base/{$this->options['phpcs']}")),
-                    "'$base/{$this->options['phpcs']}' not valid command. Please, make sure it exists."
+                    "'$base/{$this->options['phpcs']}' not valid phpcs command. Please, make sure it exists."
                 );
             } else {
                 $this->exitIf(
                     empty(shell_exec('command -v phpcs')),
-                    "'phpcs' is required when using phar. Please, install it or use ``--phpcs`` option to indicate the path"
+                    "'phpcs' is required when using phar.\n\nPlease, install it or use ``--phpcs`` option to indicate the path."
                 );
             }
         } else {
@@ -441,7 +443,8 @@ class Main
                     $result = shell_exec($arg);
                     $error  = "Missing --commit.\n\nPlease, choose a commit, ";
                     $error .= 'specify a file using ``--file`` option, or ';
-                    $error .= "use ``--diff`` option to validate against the last change:\n\n$result";
+                    $error .= "use ``--diff`` option to validate against the lastest changes.\n\n";
+                    $error .= "Available commits:\n\n$result";
                     $this->exit($error);
                 }
             } elseif ($this->options['type'] === 'diff') {
