@@ -39,15 +39,6 @@ class Main
     private $options = [];
 
     /**
-     * Possible options for reporting.
-     *
-     * @var array
-     */
-    private $reportOptions = [
-        ''
-    ];
-
-    /**
      * Indicates whether it has found error or not.
      *
      * @var bool
@@ -188,12 +179,12 @@ class Main
      */
     private function parseModifiedGitFiles(): array
     {
-        $r = $this->options['repo'];
-        $t = $this->options['type'];
-        $c = $this->options['commit'];
-        $f = $this->options['file'];
+        $repo   = $this->options['repo'];
+        $ttype  = $this->options['type'];
+        $commit = $this->options['commit'];
+        $ffile  = $this->options['file'];
 
-        $result  = shell_exec("git --git-dir=$r/.git --work-tree=$r $t $c --unified=0 $f | egrep '^(@@|\+\+)'");
+        $result  = shell_exec("git --git-dir=$repo/.git --work-tree=$repo $type $commit --unified=0 $file | egrep '^(@@|\+\+)'");
         $lines   = explode(PHP_EOL, $result);
         $crrFile = null;
         $files   = [];
@@ -227,7 +218,6 @@ class Main
      */
     private function parsePHPCSErrors(string $file): array
     {
-        $dir      = dirname(__FILE__);
         $stndr    = $this->options['standard'];
         $php      = $this->options['php'];
         $phpcs    = $this->options['phpcs'];
