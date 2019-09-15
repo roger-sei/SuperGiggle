@@ -292,13 +292,13 @@ class Main
         echo "  Usage: \033[0;35msuper-giggle [--commit]\033[0m\n\n";
         $options = [
             'standard' => 'The name or path of the coding standard to use',
-            'diff'     => 'Validate changes on the current repository, between commits or branches',
-            'all'      => 'Performs a full check and not only the changed lines',
-            'repo'     => 'Indicates the git working directory. Defaults to current cwd',
-            'phpcs'    => 'Indicates the php binary. Defaults to ENV',
-            'type'     => 'The type of check. Defaults to "show" changes of a given commit. ',
-            'help'     => 'Print this help',
-            'verbose'  => 'Prints additional information',
+            'diff' => 'Validate changes on the current repository, between commits or branches',
+            'all' => 'Performs a full check and not only the changed lines',
+            'repo' => 'Indicates the git working directory. Defaults to current cwd',
+            'phpcs' => 'Indicates the php binary. Defaults to ENV',
+            'type' => 'The type of check. Defaults to "show" changes of a given commit. ',
+            'help' => 'Print this help',
+            'verbose' => 'Prints additional information',
             'warnings' => 'Also displays warnings',
         ];
         foreach ($options as $name => $description) {
