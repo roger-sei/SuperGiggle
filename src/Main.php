@@ -47,6 +47,12 @@ class Main
         ''
     ];
 
+    /**
+     * Indicates whether it has found error or not.
+     *
+     * @var bool
+     */
+    public $errorFound = false;
 
     /**
      * Indicates whether this is a phar execution or not.
@@ -181,12 +187,13 @@ class Main
                 $crrFile         = substr($line, (strpos($line, ' b/') + 3));
                 $files[$crrFile] = [];
             } elseif (substr($line, 0, 3) === '@@ ' || substr($line, 0, 4) === '@@@ ') {
-                preg_match('/\+(\d+)\,(\d+)/', $line, $numbers);
-                if (isset($numbers[2]) === true) {
+                preg_match('/^@@ .+? \+(\d+),?(\d+)?/', $line, $numbers);
+                if (isset($numbers[1]) === true) {
                     $files[$crrFile][] = [
                         'status' => false,
                         'line'   => $numbers[1],
-                        'range'  => $numbers[2],
+                        'range'  => ($numbers[2] ?? 0),
+                        'change' => substr($line, (strpos($line, ' ') + 1)),
                     ];
                 }
             }
@@ -205,13 +212,13 @@ class Main
      */
     private function parsePHPCSErrors(string $file): array
     {
-        $dir   = dirname(__FILE__);
-        $stndr = $this->options['standard'];
-        $php   = $this->options['php'];
-        $phpcs = $this->options['phpcs'];
+        $dir      = dirname(__FILE__);
+        $stndr    = $this->options['standard'];
+        $php      = $this->options['php'];
+        $phpcs    = $this->options['phpcs'];
+        $warnings = $this->options['warnings'];
 
-        $response = shell_exec("$php $phpcs --report=json --standard=$stndr '$file'");
-
+        $response = shell_exec("$php $phpcs --report=json --standard=$stndr '$file' $warnings");
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
         // This is a quick fix.
         $json = json_decode(str_replace('},,{', '},{', $response), true);
@@ -233,6 +240,8 @@ class Main
      */
     private function printError(string $file, array $error): void
     {
+        $this->errorFound = true;
+
         if (isset($this->filesMatched[$file]) === false) {
             $this->filesMatched[$file] = true;
             echo "\nFILE: $file\n";
@@ -241,17 +250,18 @@ class Main
         }
 
         if (isset($this->options['verbose']) === true) {
+            $verbose = ' | ' . str_pad($error['type'], 10, ' ', STR_PAD_RIGHT);
+
             if (strlen($error['source']) > 60) {
-                $verbose = ' | ' . substr($error['source'], 0, 57) . '...';
+                $verbose .= ' | ' . substr($error['source'], 0, 57) . '...';
             } else {
-                $verbose = ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
+                $verbose .= ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
             }
         } else {
             $verbose = '';
         }
 
         echo str_pad($error['line'], 7, ' ', STR_PAD_LEFT);
-        echo ' |' . str_pad($error['column'], 5, ' ', STR_PAD_LEFT);
         echo $verbose;
         echo ' | ' . $error['message'] . PHP_EOL;
     }
@@ -264,16 +274,25 @@ class Main
      */
     public function printUsage(): void
     {
+        echo "  Usage: \033[0;35msuper-giggle [--commit]\033[0m\n\n";
         $options = [
-            'standard',
-            'diff',
-            'all',
-            'repo',
-            'phpcs',
-            'type',
-            'help',
+            'standard' => 'The name or path of the coding standard to use',
+            'diff'     => 'Validate changes on the current repository, between commits or branches',
+            'all'      => 'Performs a full check and not only the changed lines',
+            'repo'     => 'Indicates the git working directory. Defaults to current cwd',
+            'phpcs'    => 'Indicates the php binary. Defaults to ENV',
+            'type'     => 'The type of check. Defaults to "show" changes of a given commit. ',
+            'help'     => 'Print this help',
+            'verbose'  => 'Prints additional information',
+            'warnings' => 'Also displays warnings',
         ];
-        echo 'Usage: super-giggle [--'. join('] [--', $options) . ']' . PHP_EOL;
+        foreach ($options as $name => $description) {
+            echo str_pad("\033[1;31m  --$name ", 22, ' ', STR_PAD_RIGHT) .
+                "\033[1;37m" . $description . "\033[0m" . PHP_EOL;
+        }
+
+        echo PHP_EOL;
+
         exit(0);
     }
 
@@ -297,18 +316,18 @@ class Main
         $files    = $this->parseModifiedGitFiles();
         $checkAll = isset($this->options['all']);
         $checkSBC = 'Function closing brace must go on the next line';
-        foreach ($files as $file => $gitErrors) {
+        foreach ($files as $file => $gitChanges) {
             foreach ($this->parsePHPCSErrors("{$this->options['repo']}/$file") as $crrPhpcsError) {
-                foreach ($gitErrors as $crrGitError) {
+                foreach ($gitChanges as $crrChange) {
                     if ($checkAll === true) {
                         $this->printError($file, $crrPhpcsError);
                         break;
-                    } elseif ($crrPhpcsError['line'] >= $crrGitError['line']
-                        && $crrPhpcsError['line'] <= ($crrGitError['line'] + $crrGitError['range'])
+                    } elseif ($crrPhpcsError['line'] >= $crrChange['line']
+                        && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
                     ) {
                         $this->printError($file, $crrPhpcsError);
-                    } elseif (($crrPhpcsError['line'] + 1) >= $crrGitError['line']
-                        && $crrPhpcsError['line'] <= ($crrGitError['line'] + $crrGitError['range'])
+                    } elseif (($crrPhpcsError['line'] + 1) >= $crrChange['line']
+                        && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
                     ) {
                         // Check for errors right after the line changed.
                         // @gregsherwood suggestion for a better approach?
@@ -318,6 +337,11 @@ class Main
                     }
                 }
             }
+        }
+
+        if ($this->errorFound === true) {
+            echo PHP_EOL;
+            exit(1);
         }
     }
 
@@ -341,29 +365,35 @@ class Main
                 );
             } else {
                 $this->exitIf(
-                    empty(shell_exec("command -v phpcs")),
+                    empty(shell_exec('command -v phpcs')),
                     "'phpcs' is required when using phar. Please, install it or use --phpcs option to indicate the path"
                 );
             }
         } else {
             $this->exitIf(
-                isset($this->options['phpcs']) === true && empty(shell_exec("command -v {$this->options['phpcs']}")),
+                isset($this->options['phpcs']) && empty(shell_exec("command -v {$this->options['phpcs']}")),
                 "'phpcs' not found. Please, install it or use --phpcs option to indicate the path"
             );
             $this->exitIf(
-                isset($this->options['phpcs']) === false && file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs") === false,
+                isset($this->options['phpcs']) && file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs"),
                 "Dependency file 'phpcs' not found. Please, install it using composer or use --phpcs option to indicate the executable"
             );
         }
 
         $this->exitIf(
             (version_compare(PHP_VERSION, '7.1') === -1),
-            'super-giggle requires at leaset PHP 7.1. Your PHP version is '. PHP_VERSION . ' :('
+            'super-giggle requires at leaset PHP 7.1. Your PHP version is ' . PHP_VERSION . ' :('
         );
 
         // Now, check for all options.
         if (isset($this->options['diff']) === true) {
             $this->options['type'] = 'diff';
+        }
+
+        if (isset($this->options['warnings']) === true) {
+            $this->options['warnings'] = '--warning-severity=5';
+        } else {
+            $this->options['warnings'] = '--warning-severity=9';
         }
 
         $this->options['type']     = ($this->options['type'] ?? 'show');
@@ -377,7 +407,13 @@ class Main
             if (isset($this->options['repo']) === true) {
                 $this->exit('Empty value for "--repo"');
             } else {
-                $this->exit('Missing "--repo"');
+                if (preg_match('#^(.+)\.git#i', shell_exec('git rev-parse --git-dir'), $result) === 1
+                    && isset($result[1]) === true
+                ) {
+                    $this->options['repo'] = $result[1];
+                } else {
+                    $this->exit('Missing "--repo"');
+                }
             }
         }
 
