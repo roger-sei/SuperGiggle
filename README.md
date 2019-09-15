@@ -14,9 +14,8 @@ But at the same time you still WANT to implement **good practices** and **standa
 ![Full check using PHPCS](https://roger-sei.github.io/assets/super-giggle.gif)
 
 ## Requirements
-  - PHP 7.2 or greater
-  - PHPCS 3 or greater
-
+- PHP 7.2 or greater
+- PHPCS 3 or greater
 
 # Instalation and usage
 
@@ -25,18 +24,15 @@ PHAR: [super-giggle.phar](https://roger-sei.github.io/super-giggle.phar)
 
     php super-giggle.phar --help
 
-
 ## Composer
     composer install roger-sei/super-giggle
     super-giggle --help
-
 
 ## Git clone
 
     git clone https://github.com/roger-sei/SuperGiggle.git && SuperGiggle
     composer install
     php bin/super-giggle --help
-
 
 ## Options
     bin/supper-giggle [--repo] [--commit] [options]

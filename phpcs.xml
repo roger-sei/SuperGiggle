@@ -5,17 +5,21 @@
 			<exclude name="PSR2.Classes.ClassDeclaration"/>
 		</rule>
 		
-		<rule ref="Squiz.Operators.ComparisonOperatorUsage" />
-		<rule ref="Squiz.Formatting.OperatorBracket" />
 		<rule ref="Squiz.Commenting.FunctionComment" />
-		<rule ref="Squiz.WhiteSpace.FunctionSpacing" />
+		<rule ref="Squiz.Formatting.OperatorBracket" />
+		<rule ref="Squiz.Operators.ComparisonOperatorUsage" />
 		<rule ref="Squiz.Strings.DoubleQuoteUsage.NotRequired" />
 		<rule ref="Squiz.Strings.EchoedStrings.HasBracket" />
+		<rule ref="Squiz.WhiteSpace.FunctionSpacing" />
+		<rule ref="Squiz.WhiteSpace" >
+			<exclude name="Squiz.WhiteSpace.FunctionClosingBraceSpace.SpacingBeforeClose" />
+		</rule>
 		
 		<rule ref="Generic.Arrays.ArrayIndent" />
+		<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
 		<rule ref="Generic.Commenting.DocComment" />
 		<rule ref="Generic.Formatting.MultipleStatementAlignment" />
-		<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+		<rule ref="Generic.Metrics.CyclomaticComplexity" />
 		
 		<rule ref="Generic.Files.LineLength">
 			<properties>
