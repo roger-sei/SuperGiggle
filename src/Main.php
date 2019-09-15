@@ -72,51 +72,6 @@ class Main
         $this->separator = str_repeat('-', 110) . PHP_EOL;
     }
 
-
-    /**
-     * Run SupperGiggle, using arguments from CLI.
-     *
-     * @param array $args Arguments in CLI format.
-     *
-     * @return void
-     */
-    public function autoRun(array $args): void
-    {
-        next($args);
-        $options      = [];
-        $solos        = [];
-        $solosAllowed = [
-            '--all',
-            '--verbose',
-            '--diff',
-        ];
-        for ($arg = current($args); $arg; $arg = next($args)) { // phpcs:ignore
-            if (substr($arg, 0, 2) === '--' && strlen($arg) > 2) {
-                if (strpos($arg, '=') !== false) {
-                    preg_match('#--([\\w\\s\-]+)=("|\')?(.+)(\\2)?#', $arg, $results);
-                    if (isset($results[2]) === true) {
-                        $options[$results[1]] = $results[3];
-                    } else {
-                        $message  = "Malformed argument '$arg'. ";
-                        $message .= 'Check your syntax and try again or make a pull request to fix any error :P';
-                        $this->exit($message);
-                    }
-                } elseif (in_array($arg, $solosAllowed) === true) {
-                    $options[substr($arg, 2)] = true;
-                } else {
-                    $options[substr($arg, 2)] = next($args);
-                }
-            } else {
-                $solos[] = $arg;
-            }
-        }
-
-        $options['commit'] = ($options['commit'] ?? end($solos) ?? '');
-
-        $this->run($options);
-    }
-
-
     /**
      * Helper to display a message and exit.
      *
@@ -281,37 +236,6 @@ class Main
         echo ' | ' . $error['message'] . PHP_EOL;
     }
 
-
-    /**
-     * Print help information, in cli format
-     *
-     * @return void
-     */
-    public function printUsage(): void
-    {
-        echo "  Usage: \033[0;35msuper-giggle [--commit]\033[0m\n\n";
-        $options = [
-            'standard' => 'The name or path of the coding standard to use',
-            'diff'     => 'Validate changes on the current repository, between commits or branches',
-            'all'      => 'Performs a full check and not only the changed lines',
-            'repo'     => 'Indicates the git working directory. Defaults to current cwd',
-            'phpcs'    => 'Indicates the php binary. Defaults to ENV',
-            'type'     => 'The type of check. Defaults to "show" changes of a given commit. ',
-            'help'     => 'Print this help',
-            'verbose'  => 'Prints additional information',
-            'warnings' => 'Also displays warnings',
-        ];
-        foreach ($options as $name => $description) {
-            echo str_pad("\033[1;31m  --$name ", 22, ' ', STR_PAD_RIGHT) .
-                "\033[1;37m" . $description . "\033[0m" . PHP_EOL;
-        }
-
-        echo PHP_EOL;
-
-        exit(0);
-    }
-
-
     /**
      * Run the SuperGiggle using $options
      *
@@ -322,10 +246,6 @@ class Main
     public function run(array $options = null): void
     {
         $this->options = ($options ?? $this->options);
-        if (isset($this->options['help']) === true) {
-            $this->printUsage();
-        }
-
         $this->validateOptions();
 
         $files    = $this->parseModifiedGitFiles();
@@ -463,6 +383,4 @@ class Main
             "File '{$this->options['file']}' doesn't appear to exist!"
         );
     }
-
-
 }
