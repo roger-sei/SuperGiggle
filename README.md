@@ -1,6 +1,12 @@
 ## About
 SuperGiggle checks for code violations in a given commit, checking only for changed lines in a given commit, instead of checking for violations in the whole file.
 
+![GitHub](https://img.shields.io/github/license/roger-sei/SuperGiggle?style=for-the-badge)
+![GitHub last commit](https://img.shields.io/github/last-commit/roger-sei/SuperGiggle?style=for-the-badge)
+![GitHub top language](https://img.shields.io/github/languages/top/roger-sei/SuperGiggle?style=for-the-badge)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/roger-sei/SuperGiggle?style=for-the-badge)
+
+
 ## Requirements
 - PHP 7.2 or greater
 - PHPCS 3 or greater
