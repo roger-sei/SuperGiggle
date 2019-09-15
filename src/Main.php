@@ -15,6 +15,8 @@
 
 namespace SupperGiggle;
 
+use SupperGiggle\Util;
+
 class Main
 {
 
@@ -62,50 +64,6 @@ class Main
     public function __construct()
     {
         $this->separator = str_repeat('-', 110) . PHP_EOL;
-    }
-
-
-    /**
-     * Run SupperGiggle, using arguments from CLI.
-     *
-     * @param array $args Arguments in CLI format.
-     *
-     * @return void
-     */
-    public function autoRun(array $args): void
-    {
-        next($args);
-        $options      = [];
-        $solos        = [];
-        $solosAllowed = [
-            '--all',
-            '--verbose',
-            '--diff',
-        ];
-        for ($arg = current($args); $arg; $arg = next($args)) { // phpcs:ignore
-            if (substr($arg, 0, 2) === '--' && strlen($arg) > 2) {
-                if (strpos($arg, '=') !== false) {
-                    preg_match('#--([\\w\\s\-]+)=("|\')?(.+)(\\2)?#', $arg, $results);
-                    if (isset($results[2]) === true) {
-                        $options[$results[1]] = $results[3];
-                    } else {
-                        $message  = "Malformed argument '$arg'. ";
-                        $message .= 'Check your syntax and try again or make a pull request to fix any error :P';
-                        $this->exit($message);
-                    }
-                } elseif (in_array($arg, $solosAllowed) === true) {
-                    $options[substr($arg, 2)] = true;
-                } else {
-                    $options[substr($arg, 2)] = next($args);
-                }
-            } else {
-                $solos[] = $arg;
-            }
-        }
-
-        $options['commit'] = ($options['commit'] ?? end($solos) ?? '');
-
-        $this->run($options);
     }
 
 
@@ -189,8 +147,17 @@ class Main
         if (isset($this->options['all']) === true && isset($this->options['file']) === true) {
             $files[$this->options['file']] = [];
         } else {
-            $result  = shell_exec("git --git-dir=$repo/.git --work-tree=$repo $type $commit --unified=0 $file | egrep '^(@@|\+\+)'");
-            $lines   = explode(PHP_EOL, $result);
+            $execString = sprintf(
+                'git --git-dir="%s/.git" --work-tree="%s" %s %s --unified=0 %s | grep -E "^(@@|\+\+)"',
+                $repo,
+                $repo,
+                $type,
+                $commit,
+                $file
+            );
+
+            $result  = shell_exec($execString);
+            $lines   = preg_split('/\r\n|\r|\n/', $result);
             $crrFile = null;
             foreach ($lines as $line) {
                 if (substr($line, 0, 3) === '++ ' || substr($line, 0, 4) === '+++ ') {
@@ -223,12 +190,14 @@ class Main
      */
     private function parsePHPCSErrors(string $file): array
     {
-        $stndr    = $this->options['standard'];
-        $php      = $this->options['php'];
-        $phpcs    = $this->options['phpcs'];
-        $warnings = $this->options['warnings'];
+        $stndr      = $this->options['standard'];
+        $php        = $this->options['php'];
+        $phpcs      = $this->options['phpcs'];
+        $warnings   = $this->options['warnings'];
+        $execString = Util::isWindows() === true ? "$phpcs --report=json --standard=$stndr $file $warnings" :
+        "$php $phpcs --report=json --standard=$stndr '$file' $warnings";
 
-        $response = shell_exec("$php $phpcs --report=json --standard=$stndr '$file' $warnings");
+        $response = shell_exec($execString);
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
         // This is a quick fix.
         $json = json_decode(str_replace('},,{', '},{', $response), true);
@@ -278,36 +247,6 @@ class Main
 
 
     /**
-     * Print help information, in cli format
-     *
-     * @return void
-     */
-    public function printUsage(): void
-    {
-        echo "  Usage: \033[0;35msuper-giggle [--commit]\033[0m\n\n";
-        $options = [
-            'standard' => 'The name or path of the coding standard to use',
-            'diff'     => 'Validate changes on the current repository, between commits or branches',
-            'all'      => 'Performs a full check and not only the changed lines',
-            'repo'     => 'Indicates the git working directory. Defaults to current cwd',
-            'phpcs'    => 'Indicates the php binary. Defaults to ENV',
-            'type'     => 'The type of check. Defaults to "show" changes of a given commit. ',
-            'help'     => 'Print this help',
-            'verbose'  => 'Prints additional information',
-            'warnings' => 'Also displays warnings',
-        ];
-        foreach ($options as $name => $description) {
-            echo str_pad("\033[1;31m  --$name ", 22, ' ', STR_PAD_RIGHT) .
-                "\033[1;37m" . $description . "\033[0m" . PHP_EOL;
-        }
-
-        echo PHP_EOL;
-
-        exit(0);
-    }
-
-
-    /**
      * Run the SuperGiggle using $options
      *
      * @param array $options Check help for more information.
@@ -317,10 +256,6 @@ class Main
     public function run(array $options = null): void
     {
         $this->options = ($options ?? $this->options);
-        if (isset($this->options['help']) === true) {
-            $this->printUsage();
-        }
-
         $this->validateOptions();
 
         $files    = $this->parseModifiedGitFiles();
@@ -328,7 +263,6 @@ class Main
         $checkSBC = 'Function closing brace must go on the next line';
         foreach ($files as $file => $gitChanges) {
             foreach ($this->parsePHPCSErrors("{$this->options['repo']}/$file") as $crrPhpcsError) {
-                print_r($crrPhpcsError, true);
                 if ($checkAll === true) {
                     $this->printError($file, $crrPhpcsError);
                 } else {
@@ -410,11 +344,11 @@ class Main
 
         $this->options['type']     = ($this->options['type'] ?? 'show');
         $this->options['php']      = ($this->options['php'] ?? 'php');
-        $this->options['phpcs']    = ($this->options['phpcs'] ?? __DIR__ . '/../vendor/bin/phpcs');
+        $this->options['phpcs']    = ($this->options['phpcs'] ?? Util::getPhpCsBinary());
         $this->options['standard'] = ($this->options['standard'] ?? 'PSR12');
 
         if (empty($this->options['repo']) === true && file_exists(getcwd() . '/.git') === true) {
-            $this->options['repo'] = getcwd();
+            $this->options['repo'] = str_replace('\\', '/', realpath(getcwd()));
         } elseif (empty($this->options['repo']) === true) {
             if (isset($this->options['repo']) === true) {
                 $this->exit('Empty value for ``--repo``');
@@ -459,6 +393,4 @@ class Main
             "File '{$this->options['file']}' doesn't appear to exist!"
         );
     }
-
-
 }
