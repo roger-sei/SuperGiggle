@@ -20,9 +20,16 @@ $phar->setStub(
 <?php
 Phar::mapPhar("super-giggle.phar");
 require_once "phar://super-giggle.phar/Main.php";
+require_once "phar://super-giggle.phar/Util.php";
+
+$opts = SupperGiggle\Util::parseArgs();
+if (isset($opts["help"])) {
+    SupperGiggle\Util::printUsage();
+}
+
 $sg = new SupperGiggle\Main();
 $sg->isPhar = true;
-$sg->autoRun($argv);
+$sg->run($opts);
 exit(0);
 __HALT_COMPILER();');
 

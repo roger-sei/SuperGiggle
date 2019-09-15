@@ -13,10 +13,7 @@ use SupperGiggle\Main;
 use SupperGiggle\Util;
 
 $opts = Util::parseArgs();
-$help = isset($opts['help']);
-$commit = isset($opts['commit']);
-
-if ($help || !$commit) {
+if (isset($opts['help'])) {
     Util::printUsage();
 }
 
