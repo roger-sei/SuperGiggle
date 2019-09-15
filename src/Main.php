@@ -262,10 +262,10 @@ class Main
         if (isset($this->options['verbose']) === true) {
             $verbose = ' | ' . str_pad($error['type'], 10, ' ', STR_PAD_RIGHT);
 
-            if (strlen($error['source']) > 60) {
-                $verbose .= ' | ' . substr($error['source'], 0, 57) . '...';
+            if (strlen($error['source']) > 70) {
+                $verbose .= ' | ' . substr($error['source'], 0, 67) . '...';
             } else {
-                $verbose .= ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
+                $verbose .= ' | ' . str_pad($error['source'], 70, ' ', STR_PAD_RIGHT);
             }
         } else {
             $verbose = '';
@@ -408,10 +408,9 @@ class Main
             $this->options['warnings'] = '--warning-severity=9';
         }
 
-        $this->options['type']     = ($this->options['type'] ?? 'show');
-        $this->options['php']      = ($this->options['php'] ?? 'php');
-        $this->options['phpcs']    = ($this->options['phpcs'] ?? __DIR__ . '/../vendor/bin/phpcs');
-        $this->options['standard'] = ($this->options['standard'] ?? 'PSR12');
+        $this->options['type']   = ($this->options['type'] ?? 'show');
+        $this->options['php']   = ($this->options['php'] ?? 'php');
+        $this->options['phpcs'] = ($this->options['phpcs'] ?? __DIR__ . '/../vendor/bin/phpcs');
 
         if (empty($this->options['repo']) === true && file_exists(getcwd() . '/.git') === true) {
             $this->options['repo'] = getcwd();
@@ -426,6 +425,14 @@ class Main
                 } else {
                     $this->exit('Missing ``--repo``');
                 }
+            }
+        }
+
+        if (empty($this->options['standard']) === true) {
+            if (file_exists("{$this->options['repo']}/phpcs.xml") === true) {
+                $this->options['standard'] = "{$this->options['repo']}/phpcs.xml";
+            } else {
+                $this->options['standard'] = 'PSR12';
             }
         }
 
