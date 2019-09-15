@@ -15,7 +15,7 @@
 
 namespace SupperGiggle;
 
-class Runner
+class Main
 {
     /**
      * Errors matched between git show and phpcs.
@@ -47,6 +47,20 @@ class Runner
         ''
     ];
 
+    /**
+     * Indicates whether it has found error or not.
+     *
+     * @var bool
+     */
+    public $errorFound = false;
+
+    /**
+     * Indicates whether this is a phar execution or not.
+     *
+     * @var bool
+     */
+    public $isPhar = false;
+
 
     /**
      * Sets optional settings.
@@ -74,6 +88,7 @@ class Runner
         $solosAllowed = [
             '--all',
             '--verbose',
+            '--diff',
         ];
         for ($arg = current($args); $arg; $arg = next($args)) { // phpcs:ignore
             if (substr($arg, 0, 2) === '--' && strlen($arg) > 2) {
@@ -84,7 +99,7 @@ class Runner
                     } else {
                         $message  = "Malformed argument '$arg'. ";
                         $message .= 'Check your syntax and try again or make a pull request to fix any error :P';
-                        $this->throw($message);
+                        $this->exit($message);
                     }
                 } elseif (in_array($arg, $solosAllowed) === true) {
                     $options[substr($arg, 2)] = true;
@@ -96,13 +111,43 @@ class Runner
             }
         }
 
-        foreach ($solos as &$arg) {
-            if ($this->match($arg, '^[a-f0-9]{7}$') === $arg) {
-                $options['commit'] = $arg;
-            }
-        }
+        $options['commit'] = ($options['commit'] ?? end($solos) ?? '');
 
         $this->run($options);
+    }
+
+
+    /**
+     * Helper to display a message and exit.
+     *
+     * @param string $message Error message.
+     *
+     * @return void
+     */
+    private function exit(string $message): void
+    {
+        $error   = [];
+        $error[] = $message;
+        $error[] = 'Try --help for more information.';
+        echo join(PHP_EOL, $error);
+        echo PHP_EOL;
+        exit(1);
+    }
+
+
+    /**
+     * Helper to display a message and exit.
+     *
+     * @param boolean $assertion Conditional to exit.
+     * @param string  $message   Error message.
+     *
+     * @return void
+     */
+    private function exitIf(bool $assertion, string $message): void
+    {
+        if ($assertion === true) {
+            $this->exit($message);
+        }
     }
 
 
@@ -133,7 +178,7 @@ class Runner
         $c = $this->options['commit'];
         $f = $this->options['file'];
 
-        $result  = shell_exec("git --git-dir=$r/.git --work-tree=$r $t $c --unified=0 $f | egrep '^(@@|\+\+\+)'");
+        $result  = shell_exec("git --git-dir=$r/.git --work-tree=$r $t $c --unified=0 $f | egrep '^(@@|\+\+)'");
         $lines   = explode(PHP_EOL, $result);
         $crrFile = null;
         $files   = [];
@@ -142,12 +187,13 @@ class Runner
                 $crrFile         = substr($line, (strpos($line, ' b/') + 3));
                 $files[$crrFile] = [];
             } elseif (substr($line, 0, 3) === '@@ ' || substr($line, 0, 4) === '@@@ ') {
-                preg_match('/\+(\d+)\,(\d+)/', $line, $numbers);
-                if (isset($numbers[2]) === true) {
+                preg_match('/^@@ .+? \+(\d+),?(\d+)?/', $line, $numbers);
+                if (isset($numbers[1]) === true) {
                     $files[$crrFile][] = [
                         'status' => false,
                         'line'   => $numbers[1],
-                        'range'  => $numbers[2],
+                        'range'  => ($numbers[2] ?? 0),
+                        'change' => substr($line, (strpos($line, ' ') + 1)),
                     ];
                 }
             }
@@ -166,11 +212,13 @@ class Runner
      */
     private function parsePHPCSErrors(string $file): array
     {
-        $dir   = dirname(__FILE__);
-        $stndr = $this->options['standard'];
-        $php   = $this->options['php'];
+        $dir      = dirname(__FILE__);
+        $stndr    = $this->options['standard'];
+        $php      = $this->options['php'];
+        $phpcs    = $this->options['phpcs'];
+        $warnings = $this->options['warnings'];
 
-        $response = shell_exec("$php $dir/../vendor/bin/phpcs --report=json --standard=$stndr '$file'");
+        $response = shell_exec("$php $phpcs --report=json --standard=$stndr '$file' $warnings");
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
         // This is a quick fix.
         $json = json_decode(str_replace('},,{', '},{', $response), true);
@@ -192,6 +240,8 @@ class Runner
      */
     private function printError(string $file, array $error): void
     {
+        $this->errorFound = true;
+
         if (isset($this->filesMatched[$file]) === false) {
             $this->filesMatched[$file] = true;
             echo "\nFILE: $file\n";
@@ -200,17 +250,18 @@ class Runner
         }
 
         if (isset($this->options['verbose']) === true) {
+            $verbose = ' | ' . str_pad($error['type'], 10, ' ', STR_PAD_RIGHT);
+
             if (strlen($error['source']) > 60) {
-                $verbose = ' | ' . substr($error['source'], 0, 57) . '...';
+                $verbose .= ' | ' . substr($error['source'], 0, 57) . '...';
             } else {
-                $verbose = ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
+                $verbose .= ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
             }
         } else {
             $verbose = '';
         }
 
         echo str_pad($error['line'], 7, ' ', STR_PAD_LEFT);
-        echo ' |' . str_pad($error['column'], 5, ' ', STR_PAD_LEFT);
         echo $verbose;
         echo ' | ' . $error['message'] . PHP_EOL;
     }
@@ -221,9 +272,27 @@ class Runner
      *
      * @return void
      */
-    public function printHelp(): void
+    public function printUsage(): void
     {
-        echo "Please, be patiente. I'm building this XD\n";
+        echo "  Usage: \033[0;35msuper-giggle [--commit]\033[0m\n\n";
+        $options = [
+            'standard' => 'The name or path of the coding standard to use',
+            'diff'     => 'Validate changes on the current repository, between commits or branches',
+            'all'      => 'Performs a full check and not only the changed lines',
+            'repo'     => 'Indicates the git working directory. Defaults to current cwd',
+            'phpcs'    => 'Indicates the php binary. Defaults to ENV',
+            'type'     => 'The type of check. Defaults to "show" changes of a given commit. ',
+            'help'     => 'Print this help',
+            'verbose'  => 'Prints additional information',
+            'warnings' => 'Also displays warnings',
+        ];
+        foreach ($options as $name => $description) {
+            echo str_pad("\033[1;31m  --$name ", 22, ' ', STR_PAD_RIGHT) .
+                "\033[1;37m" . $description . "\033[0m" . PHP_EOL;
+        }
+
+        echo PHP_EOL;
+
         exit(0);
     }
 
@@ -238,23 +307,27 @@ class Runner
     public function run(array $options = null): void
     {
         $this->options = ($options ?? $this->options);
+        if (isset($this->options['help']) === true) {
+            $this->printUsage();
+        }
+
         $this->validateOptions();
 
         $files    = $this->parseModifiedGitFiles();
         $checkAll = isset($this->options['all']);
         $checkSBC = 'Function closing brace must go on the next line';
-        foreach ($files as $file => $gitErrors) {
+        foreach ($files as $file => $gitChanges) {
             foreach ($this->parsePHPCSErrors("{$this->options['repo']}/$file") as $crrPhpcsError) {
-                foreach ($gitErrors as $crrGitError) {
+                foreach ($gitChanges as $crrChange) {
                     if ($checkAll === true) {
                         $this->printError($file, $crrPhpcsError);
                         break;
-                    } elseif ($crrPhpcsError['line'] >= $crrGitError['line']
-                        && $crrPhpcsError['line'] <= ($crrGitError['line'] + $crrGitError['range'])
+                    } elseif ($crrPhpcsError['line'] >= $crrChange['line']
+                        && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
                     ) {
                         $this->printError($file, $crrPhpcsError);
-                    } elseif (($crrPhpcsError['line'] + 1) >= $crrGitError['line']
-                        && $crrPhpcsError['line'] <= ($crrGitError['line'] + $crrGitError['range'])
+                    } elseif (($crrPhpcsError['line'] + 1) >= $crrChange['line']
+                        && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
                     ) {
                         // Check for errors right after the line changed.
                         // @gregsherwood suggestion for a better approach?
@@ -265,24 +338,11 @@ class Runner
                 }
             }
         }
-    }
 
-
-    /**
-     * Helper to display a message and exit.
-     *
-     * @param string $message Error message.
-     *
-     * @return void
-     */
-    private function throw(string $message): void
-    {
-        $error   = [];
-        $error[] = $message;
-        $error[] = 'Try --help for more information.';
-        echo(join(PHP_EOL, $error));
-        echo PHP_EOL;
-        exit(1);
+        if ($this->errorFound === true) {
+            echo PHP_EOL;
+            exit(1);
+        }
     }
 
 
@@ -293,19 +353,71 @@ class Runner
      */
     private function validateOptions(): void
     {
+        $base = dirname(__DIR__);
+
+        // First, we check for basic system requirements.
+        if ($this->isPhar === true) {
+            if (isset($this->options['phpcs']) === true) {
+                $base = getcwd();
+                $this->exitIf(
+                    empty(shell_exec("command -v $base/{$this->options['phpcs']}")),
+                    "'$base/{$this->options['phpcs']}' not valid command. Please, make sure it exists."
+                );
+            } else {
+                $this->exitIf(
+                    empty(shell_exec('command -v phpcs')),
+                    "'phpcs' is required when using phar. Please, install it or use --phpcs option to indicate the path"
+                );
+            }
+        } else {
+            $this->exitIf(
+                isset($this->options['phpcs']) && empty(shell_exec("command -v {$this->options['phpcs']}")),
+                "'phpcs' not found. Please, install it or use --phpcs option to indicate the path"
+            );
+            $this->exitIf(
+                isset($this->options['phpcs']) && file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs"),
+                "Dependency file 'phpcs' not found. Please, install it using composer or use --phpcs option to indicate the executable"
+            );
+        }
+
+        $this->exitIf(
+            (version_compare(PHP_VERSION, '7.1') === -1),
+            'super-giggle requires at leaset PHP 7.1. Your PHP version is ' . PHP_VERSION . ' :('
+        );
+
+        // Now, check for all options.
+        if (isset($this->options['diff']) === true) {
+            $this->options['type'] = 'diff';
+        }
+
+        if (isset($this->options['warnings']) === true) {
+            $this->options['warnings'] = '--warning-severity=5';
+        } else {
+            $this->options['warnings'] = '--warning-severity=9';
+        }
+
         $this->options['type']     = ($this->options['type'] ?? 'show');
         $this->options['php']      = ($this->options['php'] ?? 'php');
+        $this->options['phpcs']    = ($this->options['phpcs'] ?? __DIR__ . '/../vendor/bin/phpcs');
         $this->options['standard'] = ($this->options['standard'] ?? 'PSR12');
 
-        if (empty($this->options['repo']) === true) {
+        if (empty($this->options['repo']) === true && file_exists(getcwd() . '/.git') === true) {
+            $this->options['repo'] = getcwd();
+        } elseif (empty($this->options['repo']) === true) {
             if (isset($this->options['repo']) === true) {
-                $this->throw('Empty value for "--repo"');
+                $this->exit('Empty value for "--repo"');
             } else {
-                $this->throw('Missing "--repo"');
+                if (preg_match('#^(.+)\.git#i', shell_exec('git rev-parse --git-dir'), $result) === 1
+                    && isset($result[1]) === true
+                ) {
+                    $this->options['repo'] = $result[1];
+                } else {
+                    $this->exit('Missing "--repo"');
+                }
             }
-        } elseif (file_exists($this->options['repo']) === false) {
-            $this->throw("Directory \"{$this->options['repo']}\" not found");
         }
+
+        $this->exitIf(file_exists($this->options['repo']) === false, "Directory \"{$this->options['repo']}\" not found");
 
         if (empty($this->options['commit']) === true && empty($this->options['file']) === true) {
             if ($this->options['type'] === 'show') {
@@ -315,21 +427,23 @@ class Runner
                     $result = shell_exec($arg);
                     $error  = "Missing --commit.\nPlease, choose a commit ";
                     $error .= "or use --diff option to validate against the last change:\n$result";
-                    $this->throw($error);
+                    $this->exit($error);
                 }
             } elseif ($this->options['type'] === 'diff') {
                 $this->options['commit'] = ($this->options['commit'] ?? '');
             } else {
-                $this->thrown('Invalid value for --type.');
+                $this->exit('Invalid value for --type.');
             }
         } else {
             $this->options['commit'] = ($this->options['commit'] ?? '');
         }
 
         $this->options['file'] = ($this->options['file'] ?? '');
-        if (empty($this->options['file']) === false && file_exists($this->options['file']) === false) {
-            $this->throw("File '{$this->options['file']}' doesn't appear to exist!");
-        }
+
+        $this->exitIf(
+            (empty($this->options['file']) === false && file_exists($this->options['file']) === false),
+            "File '{$this->options['file']}' doesn't appear to exist!"
+        );
     }
 
 

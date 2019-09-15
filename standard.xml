@@ -10,6 +10,7 @@
 		<rule ref="Squiz.Commenting.FunctionComment" />
 		<rule ref="Squiz.WhiteSpace.FunctionSpacing" />
 		<rule ref="Squiz.Strings.DoubleQuoteUsage.NotRequired" />
+		<rule ref="Squiz.Strings.EchoedStrings.HasBracket" />
 		
 		<rule ref="Generic.Arrays.ArrayIndent" />
 		<rule ref="Generic.Commenting.DocComment" />
