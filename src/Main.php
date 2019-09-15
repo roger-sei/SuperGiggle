@@ -124,11 +124,15 @@ class Main
      *
      * @return void
      */
-    private function exit(string $message): void
+    private function exit(string $message = ''): void
     {
-        $error   = [];
-        $error[] = $message;
+        $error = explode(PHP_EOL, $message);
         $error[] = 'Try --help for more information.';
+
+        $title = array_shift($error);
+
+        echo PHP_EOL;
+        echo "\033[0;31m$title\033[0m\n";
         echo join(PHP_EOL, $error);
         echo PHP_EOL;
         exit(1);
@@ -426,8 +430,8 @@ class Main
                     $repo   = $this->options['repo'];
                     $arg    = "git --git-dir=$repo/.git --work-tree=$repo log --oneline --color | head -n 10";
                     $result = shell_exec($arg);
-                    $error  = "Missing --commit.\nPlease, choose a commit ";
-                    $error .= "or use --diff option to validate against the last change:\n$result";
+                    $error  = "Missing --commit.\n\nPlease, choose a commit ";
+                    $error .= "or use --diff option to validate against the last change:\n\n$result";
                     $this->exit($error);
                 }
             } elseif ($this->options['type'] === 'diff') {
