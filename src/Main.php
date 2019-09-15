@@ -147,7 +147,7 @@ class Main
         if (isset($this->options['all']) === true && isset($this->options['file']) === true) {
             $files[$this->options['file']] = [];
         } else {
-            $gitOutput = sprintf(
+            $execString = sprintf(
                 'git --git-dir="%s/.git" --work-tree="%s" %s %s --unified=0 %s | grep -E "^(@@|\+\+)"',
                 $repo,
                 $repo,
@@ -156,7 +156,7 @@ class Main
                 $file
             );
 
-            $result  = shell_exec($gitOutput);
+            $result  = shell_exec($execString);
             $lines   = preg_split('/\r\n|\r|\n/', $result);
             $crrFile = null;
             foreach ($lines as $line) {
@@ -263,7 +263,6 @@ class Main
         $checkSBC = 'Function closing brace must go on the next line';
         foreach ($files as $file => $gitChanges) {
             foreach ($this->parsePHPCSErrors("{$this->options['repo']}/$file") as $crrPhpcsError) {
-                print_r($crrPhpcsError, true);
                 if ($checkAll === true) {
                     $this->printError($file, $crrPhpcsError);
                 } else {
