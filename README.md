@@ -36,7 +36,7 @@ But at the same time you still WANT to implement **good practices** and **standa
     php bin/super-giggle --help
 
 ## Options
-    bin/supper-giggle [--repo] [--commit] [options]
+    bin/super-giggle [--repo] [--commit] [options]
 ```
     --all.     Checks the whole file. Same as *git diff [file]*.
     --repo     The working git repository.
