@@ -1,13 +1,21 @@
 #!/usr/bin/env php
 <?php
 /**
- * SupperGiggler for coding standards validation against a given commit
+ * SuperGiggler for coding standards validation against a given commit
  *
  * @author  Roger Sei <roger.sei@icloud.com>
  * @license //github.com/roger-sei/SuperGiggle/blob/master/LICENSE BSD Licence
  */
 
-require_once __DIR__.'/../vendor/autoload.php';
+if (file_exists(__DIR__ . '/../vendor/autoload.php') === true) {
+	require __DIR__ . '/../vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../../../autoload.php') === true) {
+	require __DIR__ . '/../../../autoload.php';
+} else {
+	echo 'Warning: Dependencies from composer not found. The required files...';
+	require __DIR__ . '/src/Main.php'; 
+	require __DIR__ . '/src/Util.php'; 
+}
 
 use SupperGiggle\Main;
 use SupperGiggle\Util;
@@ -19,3 +27,4 @@ if (isset($opts['help'])) {
 
 $phpcs = new Main();
 $phpcs->run($opts);
+
