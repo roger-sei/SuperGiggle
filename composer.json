@@ -2,8 +2,8 @@
     "autoload": {
         "psr-4": {"SupperGiggle\\": "src/"}
     },
-    "name": "roger-sei/supper-giggle",
-    "description": "SupperGiggle checks the coding standards for a specific commit change",
+    "name": "roger-sei/super-giggle",
+    "description": "SuperGiggle checks the coding standards for a specific commit change",
     "require": {
         "squizlabs/php_codesniffer": "3.*",
         "php": "^7.2"
