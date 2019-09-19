@@ -5,7 +5,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/roger-sei/SuperGiggle?style=for-the-badge)
 ![GitHub last commit](https://img.shields.io/github/last-commit/roger-sei/SuperGiggle?style=for-the-badge)
 
-When working with a **legacy code** or an already existing huge code, validating the existing code may become a big nightmare and you just can't improve the legacy code overnight.
+When working with a **legacy code** or an already existing huge code, validating it may become a huge nightmare and you just can't improve the legacy code overnight.
 
 ![Full check using PHPCS](https://roger-sei.github.io/assets/phpcs.gif)
 
@@ -26,19 +26,23 @@ But at the same time you still WANT to implement **good practices** and **standa
     php super-giggle.phar --help
 
 ## Composer
-    composer install -g roger-sei/super-giggle
+    composer global require roger-sei/super-giggle
+    # Export composer path to your enviroment path, if it isn't exported.
+    # Notice however it may have different path accordingly to composer version.
+    # Check **composer global --help** for more information. 
+    export PATH=$PATH:$HOME/.config/composer/vendor/bin/
     super-giggle --help
 
 ## Git clone
 
-    git clone https://github.com/roger-sei/SuperGiggle.git && SuperGiggle
+    git clone https://github.com/roger-sei/SuperGiggle.git && cd SuperGiggle
     composer install
     php bin/super-giggle --help
 
 ## Options
     bin/super-giggle [--repo] [--commit] [options]
 ```
-    --all.     Checks the whole file. Same as *git diff [file]*.
+    --all      Checks the whole file. Same as *git diff [file]*.
     --repo     The working git repository.
     --commit   The specific commit to validate.
     --phpcs    Path to phpcs executable, required only if not using composer or if phpcs isn't in your PATH env.
