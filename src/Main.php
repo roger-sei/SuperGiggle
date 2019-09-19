@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Main class for SuperGiggle, with auto runner option available.
  *
@@ -13,9 +14,9 @@
  * @link      //github.com/roger-sei/SuperGiggle
  */
 
-namespace SupperGiggle;
+namespace SuperGiggle;
 
-use SupperGiggle\Util;
+use SuperGiggle\Util;
 
 class Main
 {
@@ -195,12 +196,13 @@ class Main
         $phpcs      = $this->options['phpcs'];
         $warnings   = $this->options['warnings'];
         $execString = Util::isWindows() === true ? "$phpcs --report=json --standard=$stndr $file $warnings" :
-        "$php $phpcs --report=json --standard=$stndr '$file' $warnings";
+            "$php $phpcs --report=json --standard=$stndr '$file' $warnings";
 
         $response = shell_exec($execString);
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
         // This is a quick fix.
         $json = json_decode(str_replace('},,{', '},{', $response), true);
+        
         if (empty($json['files']) === false) {
             return current($json['files'])['messages'];
         } else {
@@ -267,11 +269,13 @@ class Main
                     $this->printError($file, $crrPhpcsError);
                 } else {
                     foreach ($gitChanges as $crrChange) {
-                        if ($crrPhpcsError['line'] >= $crrChange['line']
+                        if (
+                            $crrPhpcsError['line'] >= $crrChange['line']
                             && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
                         ) {
                             $this->printError($file, $crrPhpcsError);
-                        } elseif (($crrPhpcsError['line'] + 1) >= $crrChange['line']
+                        } elseif (
+                            ($crrPhpcsError['line'] + 1) >= $crrChange['line']
                             && $crrPhpcsError['line'] <= ($crrChange['line'] + $crrChange['range'])
                         ) {
                             // Check for errors right after the line changed.
@@ -294,6 +298,7 @@ class Main
 
     /**
      * Validate all required fieldsand exit if it fails.
+     * TODO: split this method in a separated class.
      *
      * @return void
      */
@@ -316,14 +321,35 @@ class Main
                 );
             }
         } else {
-            $this->exitIf(
-                isset($this->options['phpcs']) && empty(shell_exec("command -v $base/{$this->options['phpcs']}")),
-                "'phpcs' not found. Please, install it or use ``phpcs`` option to indicate the path"
-            );
-            $this->exitIf(
-                (isset($this->options['phpcs']) && !file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs")),
-                "Dependency file 'phpcs' not found. Please, install it using composer or use ``--phpcs`` option to indicate the executable"
-            );
+            if (isset($this->options['phpcs']) === true) {
+                $cwd          = getcwd();
+                $pathRegular  = $this->options['phpcs'];
+                $pathRelative = "$cwd/{$this->options['phpcs']}";
+                $pathVendor   = "$base/vendor/squizlabs/php_codesniffer/bin/phpcs";
+                if (empty(shell_exec("command -v $pathRegular")) === false) {
+                    $this->options['phpcs'] = $pathRegular;
+                } elseif (empty(shell_exec("command -v $pathRelative")) === false) {
+                    $this->options['phpcs'] = $pathRelative;
+                } elseif (file_exists($pathVendor) === true) {
+                    $this->options['phpcs'] = $pathVendor;
+                } else {
+                    $this->exit("phpcs not found.\n\nPlease, make sure the given ``--path={$this->options['phpcs']}`` points to the correct path.");
+                }
+            } else {
+                // It can be installed using composer, git+composer or downloaded.
+                if (file_exists("$base/vendor/squizlabs/php_codesniffer/bin/phpcs") === true) {
+                    $this->options['phpcs'] = "$base/vendor/squizlabs/php_codesniffer/bin/phpcs";
+                } elseif (file_exists("$base/../../squizlabs/php_codesniffer/bin/phpcs") === true) {
+                    $this->options['phpcs'] = "$base/../../squizlabs/php_codesniffer/bin/phpcs";
+                } else {
+                    $this->options['phpcs'] = 'phpcs';
+                }
+
+                $this->exitIf(
+                    empty(shell_exec("command -v {$this->options['phpcs']}")),
+                    "{$this->options['phpcs']} not valid phpcs command. Please, make sure it exists."
+                );
+            }
         }
 
         $this->exitIf(
@@ -352,7 +378,8 @@ class Main
             if (isset($this->options['repo']) === true) {
                 $this->exit('Empty value for ``--repo``');
             } else {
-                if (preg_match('#^(.+)\.git#i', shell_exec('git rev-parse --git-dir'), $result) === 1
+                if (
+                    preg_match('#^(.+)\.git#i', shell_exec('git rev-parse --git-dir'), $result) === 1
                     && isset($result[1]) === true
                 ) {
                     $this->options['repo'] = $result[1];

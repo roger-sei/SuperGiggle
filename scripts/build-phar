@@ -22,12 +22,12 @@ Phar::mapPhar("super-giggle.phar");
 require_once "phar://super-giggle.phar/Main.php";
 require_once "phar://super-giggle.phar/Util.php";
 
-$opts = SupperGiggle\Util::parseArgs();
+$opts = SuperGiggle\Util::parseArgs();
 if (isset($opts["help"])) {
-    SupperGiggle\Util::printUsage();
+    SuperGiggle\Util::printUsage();
 }
 
-$sg = new SupperGiggle\Main();
+$sg = new SuperGiggle\Main();
 $sg->isPhar = true;
 $sg->run($opts);
 exit(0);

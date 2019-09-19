@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Util class for SuperGiggle
  *
@@ -13,10 +14,12 @@
  * @link      //github.com/roger-sei/SuperGiggle
  */
 
-namespace SupperGiggle;
+namespace SuperGiggle;
 
 class Util
 {
+
+
     /**
      * Parse args and return in a friendly format
      *
@@ -25,25 +28,27 @@ class Util
     public static function parseArgs(): array
     {
         $alloweds = [
-            'commit:',
-            'help::',
+            'commit::',
+            'help',
             'all::',
             'verbose::',
             'diff::',
             'file::',
             'php::',
             'phpcs::',
+            'repo::',
             'standard::',
             'warnings::',
         ];
 
         $opt = getopt('', $alloweds);
-        array_walk($opt, function (&$v) {
-            $v = $v === false ? true : $v;
+        array_walk($opt, function (&$value) {
+            $value = ($value === false) ? true : $value;
         });
 
         return $opt;
     }
+
 
     /**
      * Print help information, in cli format
@@ -74,6 +79,7 @@ class Util
         exit(0);
     }
 
+
     /**
      * Get phpcs binary
      *
@@ -83,15 +89,23 @@ class Util
     {
         $path = __DIR__ . '/../vendor/bin/phpcs';
 
-        if (self::isWindows()) {
+        if (self::isWindows() === true) {
             $path = str_replace('\\', '/', __DIR__ . '/../vendor/bin/phpcs.bat');
         }
 
         return $path;
     }
 
+
+    /**
+     * Checks the OS and returns true if Windows system is found.
+     *
+     * @return boolean
+     */
     public static function isWindows(): bool
     {
         return (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
     }
+
+
 }
