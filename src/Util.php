@@ -19,13 +19,15 @@ namespace SuperGiggle;
 class Util
 {
 
+    protected $os;
+
 
     /**
      * Parse args and return in a friendly format
      *
      * @return array
      */
-    public static function parseArgs(): array
+    public function parseArgs(): array
     {
         $alloweds = [
             'commit::',
@@ -55,7 +57,7 @@ class Util
      *
      * @return void
      */
-    public static function printUsage(): void
+    public function printUsage(): void
     {
         echo "  Usage: \033[0;35msuper-giggle [--commit]\033[0m\n\n";
         $options = [
@@ -85,11 +87,11 @@ class Util
      *
      * @return string
      */
-    public static function getPhpCsBinary(): string
+    public function getPhpCsBinary(): string
     {
         $path = __DIR__ . '/../vendor/bin/phpcs';
 
-        if (self::isWindows() === true) {
+        if ($this->os->isWindows() === true) {
             $path = str_replace('\\', '/', __DIR__ . '/../vendor/bin/phpcs.bat');
         }
 
@@ -98,13 +100,13 @@ class Util
 
 
     /**
-     * Checks the OS and returns true if Windows system is found.
+     * Set current operating system
      *
-     * @return boolean
+     * @return void
      */
-    public static function isWindows(): bool
+    public function setOs($os): void
     {
-        return (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN');
+        $this->os = $os;
     }
 
 
