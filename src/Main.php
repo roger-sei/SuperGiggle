@@ -16,8 +16,6 @@
 
 namespace SuperGiggle;
 
-use SuperGiggle\Util;
-
 class Main
 {
 
@@ -43,6 +41,13 @@ class Main
     private $options = [];
 
     /**
+     * Util class
+     *
+     * @var Util
+     */
+    private $util;
+
+    /**
      * Indicates whether it has found error or not.
      *
      * @var bool
@@ -65,6 +70,19 @@ class Main
     public function __construct()
     {
         $this->separator = str_repeat('-', 110) . PHP_EOL;
+    }
+
+
+    /**
+     * Set util class.
+     *
+     * @param Util $util Util class.
+     *
+     * @return void
+     */
+    private function setUtil(Util $util): void
+    {
+        $this->util = $util;
     }
 
 
@@ -195,7 +213,7 @@ class Main
         $php        = $this->options['php'];
         $phpcs      = $this->options['phpcs'];
         $warnings   = $this->options['warnings'];
-        $execString = Util::isWindows() === true ? "$phpcs --report=json --standard=$stndr $file $warnings" :
+        $execString = $this->util->isWindows() === true ? "$phpcs --report=json --standard=$stndr $file $warnings" :
             "$php $phpcs --report=json --standard=$stndr '$file' $warnings";
 
         $response = shell_exec($execString);

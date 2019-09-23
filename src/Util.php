@@ -19,7 +19,7 @@ namespace SuperGiggle;
 class Util
 {
 
-    protected $os;
+    private $os;
 
 
     /**
@@ -100,11 +100,13 @@ class Util
 
 
     /**
-     * Set current operating system
+     * Set current operating system.
+     *
+     * @param Os $os Os class.
      *
      * @return void
      */
-    public function setOs($os): void
+    public function setOs(Os $os): void
     {
         $this->os = $os;
     }
