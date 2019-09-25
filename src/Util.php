@@ -35,6 +35,7 @@ class Util
             'diff::',
             'file::',
             'php::',
+            'php-version::',
             'phpcs::',
             'repo::',
             'standard::',
