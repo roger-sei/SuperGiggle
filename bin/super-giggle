@@ -19,10 +19,12 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php') === true) {
 use SuperGiggle\Main;
 use SuperGiggle\Util;
 
-$opts = Util::parseArgs();
+$util = new Util;
+$opts = $util->parseArgs();
 if (isset($opts['help'])) {
-    Util::printUsage();
+    $util->printUsage();
 }
 
 $phpcs = new Main();
+$phpcs->setUtil($util);
 $phpcs->run($opts);

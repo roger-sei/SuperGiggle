@@ -1,6 +1,13 @@
 {
     "autoload": {
-        "psr-4": {"SuperGiggle\\": "src/"}
+        "psr-4": {
+            "SuperGiggle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SuperGiggle\\": "tests/src/"
+        }
     },
     "name": "roger-sei/super-giggle",
     "description": "SuperGiggle checks the coding standards for a specific commit change",
@@ -11,5 +18,11 @@
     "license": "MIT",
     "bin": [
         "bin/super-giggle"
-    ]
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^8"
+    },
+    "scripts": {
+        "test": "phpunit --testdox --colors=always"
+    }
 }
