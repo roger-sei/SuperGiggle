@@ -55,7 +55,7 @@ But at the same time you still WANT to implement **good practices** and **standa
 ```
 
 ## Run tests
-```bash
+```
 $ composer test
 ```
 
