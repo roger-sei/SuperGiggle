@@ -213,8 +213,9 @@ class Main
         $php        = $this->options['php'];
         $phpcs      = $this->options['phpcs'];
         $warnings   = $this->options['warnings'];
-        $execString = $this->util->isWindows() === true ? "$phpcs --report=json --standard=$stndr $file $warnings" :
-            "$php $phpcs --report=json --standard=$stndr '$file' $warnings";
+        $phpVersion = (empty($this->options['php-version']) === true) ? '' : "--runtime-set php_version {$this->options['php-version']}";
+        $execString = ($this->util->isWindows() === true) ? "$phpcs --report=json --standard=$stndr $file $warnings" :
+            "$php $phpcs --report=json --standard=$stndr '$file' $warnings $phpVersion";
 
         $response = shell_exec($execString);
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
