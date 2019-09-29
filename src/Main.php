@@ -80,7 +80,7 @@ class Main
      *
      * @return void
      */
-    private function setUtil(Util $util): void
+    public function setUtil(Util $util): void
     {
         $this->util = $util;
     }

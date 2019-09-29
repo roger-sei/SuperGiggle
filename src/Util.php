@@ -19,6 +19,11 @@ namespace SuperGiggle;
 class Util
 {
 
+    /**
+     * Os util
+     *
+     * @var Os
+     */
     private $os;
 
 

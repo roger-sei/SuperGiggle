@@ -54,6 +54,11 @@ But at the same time you still WANT to implement **good practices** and **standa
     --standard The name or path of the coding standard. Defaults to PSR12.
 ```
 
+## Run tests
+```bash
+$ composer test
+```
+
 ### License
 
 ```
