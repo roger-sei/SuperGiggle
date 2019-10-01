@@ -16,15 +16,17 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php') === true) {
 	require __DIR__ . '/../src/Util.php';
 }
 
-use SuperGiggle\Main;
-use SuperGiggle\Util;
+use SuperGiggle\{Main, Util, Os};
 
 $util = new Util;
+$util->setOs(new Os());
 $opts = $util->parseArgs();
 if (isset($opts['help'])) {
     $util->printUsage();
 }
 
-$phpcs = new Main();
-$phpcs->setUtil($util);
-$phpcs->run($opts);
+
+
+$sg = new Main();
+$sg->setUtil($util);
+$sg->run($opts);

@@ -214,7 +214,7 @@ class Main
         $phpcs      = $this->options['phpcs'];
         $warnings   = $this->options['warnings'];
         $phpVersion = (empty($this->options['php-version']) === true) ? '' : "--runtime-set php_version {$this->options['php-version']}";
-        $execString = ($this->util->isWindows() === true) ? "$phpcs --report=json --standard=$stndr $file $warnings" :
+        $execString = ($this->util->os->isWindows() === true) ? "$phpcs --report=json --standard=$stndr $file $warnings" :
             "$php $phpcs --report=json --standard=$stndr '$file' $warnings $phpVersion";
 
         $response = shell_exec($execString);

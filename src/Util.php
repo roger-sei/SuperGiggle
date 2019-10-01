@@ -24,7 +24,7 @@ class Util
      *
      * @var Os
      */
-    private $os;
+    public $os;
 
 
     /**
@@ -35,17 +35,17 @@ class Util
     public function parseArgs(): array
     {
         $alloweds = [
-            'commit::',
+            'commit:',
             'help',
-            'all::',
+            'all',
             'verbose::',
-            'diff::',
-            'file::',
+            'diff',
+            'file:',
             'php::',
             'php-version::',
-            'phpcs::',
-            'repo::',
-            'standard::',
+            'phpcs:',
+            'repo:',
+            'standard:',
             'warnings::',
         ];
 
@@ -67,15 +67,16 @@ class Util
     {
         echo "  Usage: \033[0;35msuper-giggle [--commit]\033[0m\n\n";
         $options = [
-            'standard' => 'The name or path of the coding standard to use',
-            'diff'     => 'Validate changes on the current repository, between commits or branches',
-            'all'      => 'Performs a full check and not only the changed lines',
-            'repo'     => 'Indicates the git working directory. Defaults to current cwd',
-            'phpcs'    => 'Indicates the php binary. Defaults to ENV',
-            'type'     => 'The type of check. Defaults to "show" changes of a given commit. ',
-            'help'     => 'Print this help',
-            'verbose'  => 'Prints additional information',
-            'warnings' => 'Also displays warnings',
+            'standard'    => 'The name or path of the coding standard to use',
+            'diff'        => 'Validate changes on the current repository, between commits or branches',
+            'all'         => 'Performs a full check and not only the changed lines',
+            'repo'        => 'Indicates the git working directory. Defaults to current cwd',
+            'phpcs'       => 'Indicates the php binary. Defaults to ENV',
+            'php-version' => 'allows to specify a PHP version to check the code accordingly',
+            'type'        => 'The type of check. Defaults to "show" changes of a given commit. ',
+            'help'        => 'Print this help',
+            'verbose'     => 'Prints additional information',
+            'warnings'    => 'Also displays warnings',
         ];
         foreach ($options as $name => $description) {
             echo str_pad("\033[1;31m  --$name ", 22, ' ', STR_PAD_RIGHT) .

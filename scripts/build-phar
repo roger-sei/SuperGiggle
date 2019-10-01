@@ -21,13 +21,17 @@ $phar->setStub(
 Phar::mapPhar("super-giggle.phar");
 require_once "phar://super-giggle.phar/Main.php";
 require_once "phar://super-giggle.phar/Util.php";
+require_once "phar://super-giggle.phar/Os.php";
 
-$opts = SuperGiggle\Util::parseArgs();
+$util = new SuperGiggle\Util();
+$util->setOs(new SuperGiggle\Os());
+$opts = $util->parseArgs();
 if (isset($opts["help"])) {
-    SuperGiggle\Util::printUsage();
+    $util->printUsage();
 }
 
 $sg = new SuperGiggle\Main();
+$sg->setUtil($util);
 $sg->isPhar = true;
 $sg->run($opts);
 exit(0);
