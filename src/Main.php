@@ -323,16 +323,22 @@ class Main
      */
     private function validateOptions(): void
     {
+        // TODO: Move this validation to a separated class.
         $base = dirname(__DIR__);
 
         // First, we check for basic system requirements.
         if ($this->isPhar === true) {
             if (isset($this->options['phpcs']) === true) {
-                $base = getcwd();
-                $this->exitIf(
-                    empty(shell_exec("command -v $base/{$this->options['phpcs']}")),
-                    "'$base/{$this->options['phpcs']}' not valid phpcs command. Please, make sure it exists."
-                );
+                $cwd          = getcwd();
+                $pathRegular  = $this->options['phpcs'];
+                $pathRelative = "$cwd/{$this->options['phpcs']}";
+                if (empty(shell_exec("command -v $pathRegular")) === false) {
+                    $this->options['phpcs'] = $pathRegular;
+                } elseif (empty(shell_exec("command -v $pathRelative")) === false) {
+                    $this->options['phpcs'] = $pathRelative;
+                } else {
+                    $this->exit("phpcs not found.\n\nPlease, make sure the given ``--path={$this->options['phpcs']}`` points to the correct path.");
+                }
             } else {
                 $this->exitIf(
                     empty(shell_exec('command -v phpcs')),
