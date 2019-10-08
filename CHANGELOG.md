@@ -1,6 +1,12 @@
 # Changelog
 @author ᏒᏊᏀᏋᏒ ᏕξᏐ
 
+## [0.4.0] - 2019-10-08
+### Added
+- New option added: --diff-cached. An useful option to check for staged git files.
+
+
+#
 ## [0.3.1] - 2019-09-30
 ### Fixed
 - PHPCS path for phar fixed

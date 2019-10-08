@@ -40,6 +40,7 @@ class Util
             'all',
             'verbose::',
             'diff',
+            'diff-cached',
             'file:',
             'php::',
             'php-version::',
@@ -69,17 +70,18 @@ class Util
         $options = [
             'standard'    => 'The name or path of the coding standard to use',
             'diff'        => 'Validate changes on the current repository, between commits or branches',
+            'diff-cached' => 'Check changes on staged files, alongside with --diff',
             'all'         => 'Performs a full check and not only the changed lines',
             'repo'        => 'Indicates the git working directory. Defaults to current cwd',
             'phpcs'       => 'Indicates the php binary. Defaults to ENV',
-            'php-version' => 'allows to specify a PHP version to check the code accordingly',
+            'php-version' => 'Checks the code accordingly to a specified PHP version',
             'type'        => 'The type of check. Defaults to "show" changes of a given commit. ',
             'help'        => 'Print this help',
             'verbose'     => 'Prints additional information',
             'warnings'    => 'Also displays warnings',
         ];
         foreach ($options as $name => $description) {
-            echo str_pad("\033[1;31m  --$name ", 22, ' ', STR_PAD_RIGHT) .
+            echo str_pad("\033[1;31m  --$name ", 24, ' ', STR_PAD_RIGHT) .
                 "\033[1;37m" . $description . "\033[0m" . PHP_EOL;
         }
 

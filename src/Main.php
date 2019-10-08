@@ -311,6 +311,8 @@ class Main
         if ($this->errorFound === true) {
             echo PHP_EOL;
             exit(1);
+        } else {
+            exit(0);
         }
     }
 
@@ -387,6 +389,10 @@ class Main
             $this->options['type'] = 'diff';
         }
 
+        if (isset($this->options['diff-cached']) === true) {
+            $this->options['type'] = 'diff --cached';
+        }
+
         if (isset($this->options['warnings']) === true) {
             $this->options['warnings'] = '--warning-severity=5';
         } else {
@@ -436,10 +442,10 @@ class Main
                     $error .= "Available commits:\n\n$result";
                     $this->exit($error);
                 }
-            } elseif ($this->options['type'] === 'diff') {
+            } elseif ($this->options['type'] === 'diff' || $this->options['type'] === 'diff --cached') {
                 $this->options['commit'] = ($this->options['commit'] ?? '');
             } else {
-                $this->exit('Invalid value for ``--type``.');
+                $this->exit('Invalid value for --type.');
             }
         } else {
             $this->options['commit'] = ($this->options['commit'] ?? '');
