@@ -328,6 +328,12 @@ class Main
         // TODO: Move this validation to a separated class.
         $base = dirname(__DIR__);
 
+        if (isset($this->options['help']) === true) {
+            $this->util->printUsage();
+        } elseif (isset($this->options['version']) === true) {
+            $this->util->printVersion();
+        }
+
         // First, we check for basic system requirements.
         if ($this->isPhar === true) {
             if (isset($this->options['phpcs']) === true) {

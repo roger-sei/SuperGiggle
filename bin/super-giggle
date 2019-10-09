@@ -21,11 +21,6 @@ use SuperGiggle\{Main, Util, Os};
 $util = new Util;
 $util->setOs(new Os());
 $opts = $util->parseArgs();
-if (isset($opts['help'])) {
-    $util->printUsage();
-}
-
-
 
 $sg = new Main();
 $sg->setUtil($util);
