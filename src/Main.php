@@ -7,10 +7,11 @@
  *
  * @category  PHP
  * @package   GT8
- * @author    GT8 <roger.sei@icloud.com>
+ * @author    Roger Sei <roger.sei@icloud.com>
+ * @author    Rodrigo Girorme <rodrigo.girorme@gmail.com>
  * @copyright 2020 Roger Sei
  * @license   //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
- * @version   Release: GIT: 0.1.0
+ * @version   Release: GIT: 0.5.0
  * @link      //github.com/roger-sei/SuperGiggle
  */
 
@@ -336,22 +337,8 @@ class Main
 
         // First, we check for basic system requirements.
         if ($this->isPhar === true) {
-            if (isset($this->options['phpcs']) === true) {
-                $cwd          = getcwd();
-                $pathRegular  = $this->options['phpcs'];
-                $pathRelative = "$cwd/{$this->options['phpcs']}";
-                if (empty(shell_exec("command -v $pathRegular")) === false) {
-                    $this->options['phpcs'] = $pathRegular;
-                } elseif (empty(shell_exec("command -v $pathRelative")) === false) {
-                    $this->options['phpcs'] = $pathRelative;
-                } else {
-                    $this->exit("phpcs not found.\n\nPlease, make sure the given ``--path={$this->options['phpcs']}`` points to the correct path.");
-                }
-            } else {
-                $this->exitIf(
-                    empty(shell_exec('command -v phpcs')),
-                    "'phpcs' is required when using phar.\n\nPlease, install it or use ``--phpcs`` option to indicate the path."
-                );
+            if (empty($this->options['phpcs']) === true) {
+                $this->options['phpcs'] = \Phar::running(false) . ' --phpcs-wrapper';
             }
         } else {
             if (isset($this->options['phpcs']) === true) {

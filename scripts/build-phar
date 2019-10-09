@@ -8,7 +8,7 @@ if (file_exists("$cwd/super-giggle.phar") === true) {
 }
 
 $phar = new Phar("$cwd/super-giggle.phar", 0);
-$phar->buildFromDirectory("$base/src");
+$phar->buildFromDirectory("$base");
 foreach (($argv ?? []) as $arg) {
     if ($arg === '--compress') {
         $phar->compressFiles(Phar::GZ);
@@ -18,23 +18,37 @@ foreach (($argv ?? []) as $arg) {
 $phar->setStub(
 '#!/usr/bin/env php
 <?php
-Phar::mapPhar("super-giggle.phar");
-require_once "phar://super-giggle.phar/Main.php";
-require_once "phar://super-giggle.phar/Util.php";
-require_once "phar://super-giggle.phar/Os.php";
 
-$util = new SuperGiggle\Util();
-$util->setOs(new SuperGiggle\Os());
-$opts = $util->parseArgs();
-if (isset($opts["help"])) {
-    $util->printUsage();
+Phar::mapPhar("super-giggle.phar");
+
+
+if (in_array("--phpcs-wrapper", $argv) === true) {
+    require_once "phar://super-giggle.phar/vendor/squizlabs/php_codesniffer/autoload.php";
+
+    define("PHP_CODESNIFFER_IN_TESTS", true);
+
+    $runner   = new PHP_CodeSniffer\Runner();
+    $exitCode = $runner->runPHPCS();
+    exit($exitCode);
+} else {
+    require_once "phar://super-giggle.phar/src/Main.php";
+    require_once "phar://super-giggle.phar/src/Util.php";
+    require_once "phar://super-giggle.phar/src/Os.php";
+    
+    $util = new SuperGiggle\Util();
+    $util->setOs(new SuperGiggle\Os());
+    $opts = $util->parseArgs();
+    if (isset($opts["help"])) {
+        $util->printUsage();
+    }
+    
+    $sg = new SuperGiggle\Main();
+    $sg->setUtil($util);
+    $sg->isPhar = true;
+    $sg->run($opts);
+    exit(0);
 }
 
-$sg = new SuperGiggle\Main();
-$sg->setUtil($util);
-$sg->isPhar = true;
-$sg->run($opts);
-exit(0);
 __HALT_COMPILER();');
 
 chmod("$cwd/super-giggle.phar", 0755);

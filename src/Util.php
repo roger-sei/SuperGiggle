@@ -10,7 +10,7 @@
  * @author    girorme <rodrigogirorme@gmail.com>
  * @copyright 2020 Roger Sei
  * @license   //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
- * @version   Release: GIT: 0.1.0
+ * @version   Release: GIT: 0.5.0
  * @link      //github.com/roger-sei/SuperGiggle
  */
 
@@ -31,7 +31,7 @@ class Util
      *
      * @var string
      */
-    const VERSION = '0.4.1';
+    const VERSION = '0.5.0';
 
 
     /**

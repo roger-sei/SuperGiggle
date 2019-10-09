@@ -1,6 +1,11 @@
 # Changelog
 @author ᏒᏊᏀᏋᏒ ᏕξᏐ
 
+## [0.5.0] - 2019-10-09
+### Added
+- PHPCS added on phar file, which is fully bundled now.
+
+
 ## [0.4.1] - 2019-10-08
 ### Added
 - New option added: --diff-cached. An useful option to check for staged git files.
