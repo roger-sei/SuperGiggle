@@ -221,7 +221,12 @@ class Main
         $response = shell_exec($execString);
         // Some encoding issues makes PHPCS return empty object, causing invalid JSON.
         // This is a quick fix.
-        $json = json_decode(str_replace('},,{', '},{', $response), true);
+        $invalidJsons = [
+            '},,,,{',
+            '},,,{',
+            '},,{',
+        ];
+        $json = json_decode(str_replace($invalidJsons, '},{', $response), true);
         
         if (empty($json['files']) === false) {
             return current($json['files'])['messages'];

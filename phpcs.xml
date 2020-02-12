@@ -16,6 +16,8 @@
 		<rule ref="Generic.Commenting.DocComment" />
 		<rule ref="Generic.Formatting.MultipleStatementAlignment" />
 		<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+		<rule ref="Generic.Metrics.CyclomaticComplexity"/>
+		<rule ref="Generic.Metrics.NestingLevel" />
 		
 		<rule ref="Generic.Files.LineLength">
 			<properties>
