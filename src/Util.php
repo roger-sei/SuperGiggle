@@ -65,6 +65,7 @@ class Util
             'diff-cached',
             'file:',
             'help',
+            'json',
             'php::',
             'php-version::',
             'phpcs:',
@@ -107,6 +108,7 @@ class Util
             'verbose'     => 'Prints additional information.',
             'version'     => 'Displays current super-giggle version.',
             'warnings'    => 'Also displays warnings.',
+            'json'        => 'Display the results in JSON format',
         ];
         foreach ($options as $name => $description) {
             echo str_pad("\033[1;31m  --$name ", 24, ' ', STR_PAD_RIGHT) .

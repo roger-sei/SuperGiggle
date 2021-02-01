@@ -21,39 +21,18 @@ class Main
 {
 
     /**
-     * Errors matched between git show and phpcs.
-     *
-     * @var array
-     */
-    private $filesMatched = [];
-
-    /**
-     * Friendly separator displayed in terminal.
-     *
-     * @var string
-     */
-    private $separator = PHP_EOL;
-
-    /**
-     * Arguments from CLI.
-     *
-     * @var array
-     */
-    private $options = [];
-
-    /**
-     * Util class
-     *
-     * @var Util
-     */
-    private $util;
-
-    /**
      * Indicates whether it has found error or not.
      *
      * @var bool
      */
     public $errorFound = false;
+
+    /**
+     * Errors matched between git show and phpcs.
+     *
+     * @var array
+     */
+    private $filesMatched = [];
 
     /**
      * Indicates whether this is a phar execution or not.
@@ -64,6 +43,35 @@ class Main
 
 
     /**
+     * Saves the json response.
+     *
+     * @var array.
+     */
+    private $json = null;
+
+    /**
+     * Arguments from CLI.
+     *
+     * @var array
+     */
+    private $options = [];
+
+    /**
+     * Friendly separator displayed in terminal.
+     *
+     * @var string
+     */
+    private $separator = PHP_EOL;
+
+    /**
+     * Util class
+     *
+     * @var Util
+     */
+    private $util;
+
+
+    /**
      * Sets optional settings.
      *
      * @return void
@@ -71,19 +79,6 @@ class Main
     public function __construct()
     {
         $this->separator = str_repeat('-', 110) . PHP_EOL;
-    }
-
-
-    /**
-     * Set util class.
-     *
-     * @param Util $util Util class.
-     *
-     * @return void
-     */
-    public function setUtil(Util $util): void
-    {
-        $this->util = $util;
     }
 
 
@@ -227,7 +222,7 @@ class Main
             '},,{',
         ];
         $json = json_decode(str_replace($invalidJsons, '},{', $response), true);
-        
+
         if (empty($json['files']) === false) {
             return current($json['files'])['messages'];
         } else {
@@ -248,28 +243,34 @@ class Main
     {
         $this->errorFound = true;
 
-        if (isset($this->filesMatched[$file]) === false) {
-            $this->filesMatched[$file] = true;
-            echo "\n  FILE: $file\n";
-            echo $this->separator;
-            echo '';
-        }
-
-        if (isset($this->options['verbose']) === true) {
-            $verbose = ' | ' . str_pad($error['type'], 10, ' ', STR_PAD_RIGHT);
-
-            if (strlen($error['source']) > 60) {
-                $verbose .= ' | ' . substr($error['source'], 0, 57) . '...';
-            } else {
-                $verbose .= ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
-            }
+        if (isset($this->options['json']) === true && $this->options['json'] === true) {
+            $this->json = ($this->json ?? []);
+            $this->json[$file] = ($this->json[$file] ?? []);
+            $this->json[$file][] = $error;
         } else {
-            $verbose = '';
-        }
+            if (isset($this->filesMatched[$file]) === false) {
+                $this->filesMatched[$file] = true;
+                echo "\n  FILE: $file\n";
+                echo $this->separator;
+                echo '';
+            }
 
-        echo str_pad($error['line'], 9, ' ', STR_PAD_LEFT);
-        echo $verbose;
-        echo ' | ' . $error['message'] . PHP_EOL;
+            if (isset($this->options['verbose']) === true) {
+                $verbose = ' | ' . str_pad($error['type'], 10, ' ', STR_PAD_RIGHT);
+
+                if (strlen($error['source']) > 60) {
+                    $verbose .= ' | ' . substr($error['source'], 0, 57) . '...';
+                } else {
+                    $verbose .= ' | ' . str_pad($error['source'], 60, ' ', STR_PAD_RIGHT);
+                }
+            } else {
+                $verbose = '';
+            }
+
+            echo str_pad($error['line'], 9, ' ', STR_PAD_LEFT);
+            echo $verbose;
+            echo ' | ' . $error['message'] . PHP_EOL;
+        }
     }
 
 
@@ -315,11 +316,29 @@ class Main
         }
 
         if ($this->errorFound === true) {
-            echo PHP_EOL;
+            if (isset($this->options['json']) === true && $this->options['json'] === true) {
+                echo json_encode($this->json);
+            } else {
+                echo PHP_EOL;
+            }
+
             exit(1);
         } else {
             exit(0);
         }
+    }
+
+
+    /**
+     * Set util class.
+     *
+     * @param Util $util Util class.
+     *
+     * @return void
+     */
+    public function setUtil(Util $util): void
+    {
+        $this->util = $util;
     }
 
 
