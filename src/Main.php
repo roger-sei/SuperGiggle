@@ -21,13 +21,6 @@ class Main
 {
 
     /**
-     * Indicates whether it has found error or not.
-     *
-     * @var bool
-     */
-    public $errorFound = false;
-
-    /**
      * Errors matched between git show and phpcs.
      *
      * @var array
@@ -35,17 +28,8 @@ class Main
     private $filesMatched = [];
 
     /**
-     * Indicates whether this is a phar execution or not.
      *
-     * @var bool
-     */
-    public $isPhar = false;
-
-
-    /**
-     * Saves the json response.
      *
-     * @var array.
      */
     private $json = null;
 
@@ -70,6 +54,20 @@ class Main
      */
     private $util;
 
+    /**
+     * Indicates whether it has found error or not.
+     *
+     * @var bool
+     */
+    public $errorFound = false;
+
+    /**
+     * Indicates whether this is a phar execution or not.
+     *
+     * @var bool
+     */
+    public $isPhar = false;
+
 
     /**
      * Sets optional settings.
@@ -79,6 +77,19 @@ class Main
     public function __construct()
     {
         $this->separator = str_repeat('-', 110) . PHP_EOL;
+    }
+
+
+    /**
+     * Set util class.
+     *
+     * @param Util $util Util class.
+     *
+     * @return void
+     */
+    public function setUtil(Util $util): void
+    {
+        $this->util = $util;
     }
 
 
@@ -222,7 +233,7 @@ class Main
             '},,{',
         ];
         $json = json_decode(str_replace($invalidJsons, '},{', $response), true);
-
+        
         if (empty($json['files']) === false) {
             return current($json['files'])['messages'];
         } else {
@@ -243,7 +254,7 @@ class Main
     {
         $this->errorFound = true;
 
-        if (isset($this->options['json']) === true && $this->options['json'] === true) {
+        if ($this->options['json'] === true) {
             $this->json = ($this->json ?? []);
             $this->json[$file] = ($this->json[$file] ?? []);
             $this->json[$file][] = $error;
@@ -316,7 +327,7 @@ class Main
         }
 
         if ($this->errorFound === true) {
-            if (isset($this->options['json']) === true && $this->options['json'] === true) {
+            if ($this->options['json'] === true) {
                 echo json_encode($this->json);
             } else {
                 echo PHP_EOL;
@@ -326,19 +337,6 @@ class Main
         } else {
             exit(0);
         }
-    }
-
-
-    /**
-     * Set util class.
-     *
-     * @param Util $util Util class.
-     *
-     * @return void
-     */
-    public function setUtil(Util $util): void
-    {
-        $this->util = $util;
     }
 
 

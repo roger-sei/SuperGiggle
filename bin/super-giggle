@@ -13,8 +13,8 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php') === true) {
 	require __DIR__ . '/../../../autoload.php';
 } else {
 	require  __DIR__ . '/../src/Main.php';
-	require __DIR__ . '/../src/Os.php';
 	require __DIR__ . '/../src/Util.php';
+	require __DIR__ . '/../src/Os.php';
 }
 
 use SuperGiggle\{Main, Util, Os};
