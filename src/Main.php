@@ -81,15 +81,27 @@ class Main
 
 
     /**
-     * Set util class.
+     * Returns a list of all files in the project.
      *
-     * @param Util $util Util class.
-     *
-     * @return void
+     * @return array.
      */
-    public function setUtil(Util $util): void
+    private function getAllFiles(): array
     {
-        $this->util = $util;
+        $files = [];
+        foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->options['repo'])) as $file) {
+            if (preg_match('/.*\.(php|jpe?g)$/', $file) > 0) {
+                $file = substr($file->getPathname(), (strlen($this->options['repo']) + 1));
+                $files[$file] = [
+                    'status' => false,
+                    'line'   => null,
+                    'range'  => null,
+                    'change' => null,
+                ];
+            }
+        }
+
+        $this->options['all'] = true;
+        return $files;
     }
 
 
@@ -297,7 +309,7 @@ class Main
         $this->options = ($options ?? $this->options);
         $this->validateOptions();
 
-        $files    = $this->parseModifiedGitFiles();
+        $files    = (isset($this->options['everything']) === true) ? $this->getAllFiles() : $this->parseModifiedGitFiles();
         $checkAll = isset($this->options['all']);
         $checkSBC = 'Function closing brace must go on the next line';
         foreach ($files as $file => $gitChanges) {
@@ -337,6 +349,19 @@ class Main
         } else {
             exit(0);
         }
+    }
+
+
+    /**
+     * Set util class.
+     *
+     * @param Util $util Util class.
+     *
+     * @return void
+     */
+    public function setUtil(Util $util): void
+    {
+        $this->util = $util;
     }
 
 
