@@ -46,6 +46,7 @@ But at the same time you still WANT to implement **good practices** and **standa
     --repo     The working git repository.
     --commit   The specific commit to validate.
     --phpcs    Path to phpcs executable, required only if not using composer or if phpcs isn't in your PATH env.
+    --fullscan Performs a full scan in the whole project.
     --type     <show|diff> *diff* validates the local changes. *show* validate changes in a specific commit.
     --file     Force checking this file, regardless the type or commit options.
     --diff     Validates changes on the current repository, between commits or branches.

@@ -11,7 +11,7 @@
  * @author    Rodrigo Girorme <rodrigo.girorme@gmail.com>
  * @copyright 2020 Roger Sei
  * @license   //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
- * @version   Release: GIT: 0.5.0
+ * @version   Release: GIT: 0.7.1
  * @link      //github.com/roger-sei/SuperGiggle
  */
 
@@ -309,7 +309,7 @@ class Main
         $this->options = ($options ?? $this->options);
         $this->validateOptions();
 
-        $files    = (isset($this->options['everything']) === true) ? $this->getAllFiles() : $this->parseModifiedGitFiles();
+        $files    = (isset($this->options['fullscan']) === true) ? $this->getAllFiles() : $this->parseModifiedGitFiles();
         $checkAll = isset($this->options['all']);
         $checkSBC = 'Function closing brace must go on the next line';
         foreach ($files as $file => $gitChanges) {
