@@ -9,7 +9,6 @@
  * @package   GT8
  * @author    Roger Sei <roger.sei@icloud.com>
  * @author    Rodrigo Girorme <rodrigo.girorme@gmail.com>
- * @copyright 2020 Roger Sei
  * @license   //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
  * @version   Release: GIT: 0.7.1
  * @link      //github.com/roger-sei/SuperGiggle
@@ -88,16 +87,14 @@ class Main
     private function getAllFiles(): array
     {
         $files = [];
-        foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->options['repo'])) as $file) {
-            if (preg_match('/.*\.(php|jpe?g)$/', $file) > 0) {
-                $file = substr($file->getPathname(), (strlen($this->options['repo']) + 1));
-                $files[$file] = [
-                    'status' => false,
-                    'line'   => null,
-                    'range'  => null,
-                    'change' => null,
-                ];
-            }
+        foreach(new \RegexIterator(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->options['repo'])), '/(?<!vendor\/).*\.php/i') as $file) {
+            $file = substr($file->getPathname(), (strlen($this->options['repo']) + 1));
+            $files[$file] = [
+                'status' => false,
+                'line'   => null,
+                'range'  => null,
+                'change' => null,
+            ];
         }
 
         $this->options['all'] = true;

@@ -31,7 +31,7 @@ class Util
      *
      * @var string
      */
-    const VERSION = '0.7.1';
+    const VERSION = '0.8.0';
 
 
     /**

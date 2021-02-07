@@ -1,6 +1,20 @@
 # Changelog
 @author ᏒᏊᏀᏋᏒ ᏕξᏐ
 
+## [1.0.0] - 2021-02-07
+### Added
+- uncommited changes option added
+
+### Changed
+- JS files removed from validation
+- Vendor dir removed from scan dir
+
+
+## [0.7.0] - 2021-01-15
+### Added
+- Fullscan option
+
+
 ## [0.5.0] - 2019-10-09
 ### Added
 - PHPCS added on phar file, which is fully bundled now.

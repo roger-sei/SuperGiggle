@@ -42,17 +42,18 @@ But at the same time you still WANT to implement **good practices** and **standa
 ## Options
     bin/super-giggle [--repo] [--commit] [options]
 ```
-    --all      Checks the whole file. Same as *git diff [file]*.
-    --repo     The working git repository.
-    --commit   The specific commit to validate.
-    --phpcs    Path to phpcs executable, required only if not using composer or if phpcs isn't in your PATH env.
-    --fullscan Performs a full scan in the whole project.
-    --type     <show|diff> *diff* validates the local changes. *show* validate changes in a specific commit.
-    --file     Force checking this file, regardless the type or commit options.
-    --diff     Validates changes on the current repository, between commits or branches.
-    --verbose  Prints additional information.
-    --warnings Displays also warnings and not only errors.
-    --standard The name or path of the coding standard. Defaults to PSR12.
+    --all         Checks the whole file. Same as *git diff [file]*.
+    --repo        The working git repository.
+    --commit      The specific commit to validate.
+    --diff-cached Checks the uncommited files.
+    --phpcs       Path to phpcs executable, required only if not using composer or if phpcs isn't in your PATH env.
+    --fullscan    Performs a full scan in the whole project.
+    --type        <show|diff> *diff* validates the local changes. *show* validate changes in a specific commit.
+    --file        Force checking this file, regardless the type or commit options.
+    --diff        Validates changes on the current repository, between commits or branches.
+    --verbose     Prints additional information.
+    --warnings    Displays also warnings and not only errors.
+    --standard    The name or path of the coding standard. Defaults to PSR12.
 ```
 
 ## Run tests
