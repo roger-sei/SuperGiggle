@@ -1,7 +1,7 @@
 # Changelog
 @author ᏒᏊᏀᏋᏒ ᏕξᏐ
 
-## [1.0.0] - 2021-02-07
+## [1.0.1] - 2021-02-07
 ### Added
 - uncommited changes option added
 

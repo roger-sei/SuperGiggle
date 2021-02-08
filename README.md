@@ -20,11 +20,6 @@ But at the same time you still WANT to implement **good practices** and **standa
 
 # Instalation and usage
 
-## Phar
-
-    wget https://roger-sei.github.io/super-giggle.phar
-    php super-giggle.phar --help
-
 ## Composer
     composer global require roger-sei/super-giggle
     # Export composer path to your enviroment path, if it isn't exported.

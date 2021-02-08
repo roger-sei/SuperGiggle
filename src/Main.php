@@ -5,13 +5,13 @@
  *
  * PHP Version 7.3
  *
- * @category  PHP
- * @package   GT8
- * @author    Roger Sei <roger.sei@icloud.com>
- * @author    Rodrigo Girorme <rodrigo.girorme@gmail.com>
- * @license   //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
- * @version   Release: GIT: 0.7.1
- * @link      //github.com/roger-sei/SuperGiggle
+ * @category PHP
+ * @package  GT8
+ * @author   Roger Sei <roger.sei@icloud.com>
+ * @author   Rodrigo Girorme <rodrigo.girorme@gmail.com>
+ * @license  //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
+ * @version  Release: GIT: 0.7.1
+ * @link     //github.com/roger-sei/SuperGiggle
  */
 
 namespace SuperGiggle;
@@ -87,7 +87,7 @@ class Main
     private function getAllFiles(): array
     {
         $files = [];
-        foreach(new \RegexIterator(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->options['repo'])), '/(?<!vendor\/).*\.php/i') as $file) {
+        foreach (new \RegexIterator(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->options['repo'])), '/(?<!vendor\/).*\.php/i') as $file) {
             $file = substr($file->getPathname(), (strlen($this->options['repo']) + 1));
             $files[$file] = [
                 'status' => false,
@@ -194,11 +194,20 @@ class Main
             $result  = shell_exec($execString);
             $lines   = preg_split('/\r\n|\r|\n/', $result);
             $crrFile = null;
+            $skip    = false;
             foreach ($lines as $line) {
-                if (substr($line, 0, 3) === '++ ' || substr($line, 0, 4) === '+++ ') {
+                $isFile = (substr($line, 0, 3) === '++ ' || substr($line, 0, 4) === '+++ ');
+                if ($skip === true || $isFile === true) {
+                    if (substr($line, -4) !== '.php') {
+                        $skip = true;
+                        continue;
+                    } elseif ($isFile === true) {
+                        $skip = false;
+                    }
+
                     $crrFile         = substr($line, (strpos($line, ' b/') + 3));
                     $files[$crrFile] = [];
-                } elseif (substr($line, 0, 3) === '@@ ' || substr($line, 0, 4) === '@@@ ') {
+                } elseif ($skip === false && substr($line, 0, 3) === '@@ ' || substr($line, 0, 4) === '@@@ ') {
                     preg_match('/^@@ .+? \+(\d+),?(\d+)?/', $line, $numbers);
                     if (isset($numbers[1]) === true) {
                         $files[$crrFile][] = [
