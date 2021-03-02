@@ -272,7 +272,7 @@ class Main
     {
         $this->errorFound = true;
 
-        if ($this->options['json'] === true) {
+        if (isset($this->options['json']) === true && $this->options['json'] === true) {
             $this->json = ($this->json ?? []);
             $this->json[$file] = ($this->json[$file] ?? []);
             $this->json[$file][] = $error;
@@ -345,7 +345,7 @@ class Main
         }
 
         if ($this->errorFound === true) {
-            if ($this->options['json'] === true) {
+            if (isset($this->options['json']) === true && $this->options['json'] === true) {
                 echo json_encode($this->json);
             } else {
                 echo PHP_EOL;
