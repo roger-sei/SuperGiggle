@@ -3,14 +3,14 @@
 /**
  * Main class for SuperGiggle, with auto runner option available.
  *
- * PHP Version 7.3
+ * PHP Version 8.0
  *
  * @category PHP
  * @package  GT8
  * @author   Roger Sei <roger.sei@icloud.com>
  * @author   Rodrigo Girorme <rodrigo.girorme@gmail.com>
  * @license  //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
- * @version  Release: GIT: 0.7.1
+ * @version  Release: GIT: 1.0.3
  * @link     //github.com/roger-sei/SuperGiggle
  */
 
@@ -476,7 +476,7 @@ class Main
 
         $this->exitIf(file_exists($this->options['repo']) === false, "Directory \"{$this->options['repo']}\" not found");
 
-        if (empty($this->options['commit']) === true && empty($this->options['file']) === true) {
+        if (empty($this->options['commit']) === true && empty($this->options['file']) === true && empty($this->options['fullscan']) === true) {
             if ($this->options['type'] === 'show') {
                 if (isset($this->options['repo']) === true) {
                     $repo   = $this->options['repo'];

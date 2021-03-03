@@ -3,14 +3,14 @@
 /**
  * Util class for SuperGiggle
  *
- * PHP Version 7.3
+ * PHP Version 8.0
  *
  * @category  PHP
  * @package   GT8
  * @author    girorme <rodrigogirorme@gmail.com>
- * @copyright 2020 Roger Sei
+ * @copyright 2021 Roger Sei
  * @license   //github.com/roger-sei/SuperGiggle/blob/master/LICENSE MIT
- * @version   Release: GIT: 0.5.0
+ * @version   Release: GIT: 1.0.3
  * @link      //github.com/roger-sei/SuperGiggle
  */
 
@@ -31,7 +31,7 @@ class Util
      *
      * @var string
      */
-    const VERSION = '0.8.0';
+    const VERSION = '1.0.3';
 
 
     /**
